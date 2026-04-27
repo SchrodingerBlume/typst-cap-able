@@ -13,7 +13,7 @@
 
 #import "@preview/tidy:0.4.3"
 #import "@preview/mantys:1.0.2": *
-#import "cap-able/0.0.1/lib.typ": *
+#import "cap-able/0.0.2/lib.typ": *
 
 // ============================================================
 // Document Metadata
@@ -21,7 +21,7 @@
 
 #show: mantys(
   name: "cap-able",
-  version: "0.0.1",
+  version: "0.0.2",
   authors: (
     "Schrödinger Blume",
   ),
@@ -108,7 +108,7 @@ For documentation generation only:
 Once published to Typst Universe, import directly:
 
 ```typst
-#import "@preview/cap-able:0.0.1": *
+#import "@preview/cap-able:0.0.2": *
 ```
 
 == Manual Installation
@@ -119,7 +119,7 @@ After downloading from the repository:
 + Import with a relative path:
 
 ```typst
-#import "cap-able/0.0.1/lib.typ": *
+#import "cap-able/0.0.2/lib.typ": *
 ```
 
 // ============================================================
@@ -291,22 +291,22 @@ tablem supports cell merging:
 
 == Column Configuration
 
-Customize column widths using the `cols` parameter.
+Customize column widths using the `columns` parameter (the legacy name `cols` still works as a back-compat alias).
 
 *Column width rules:*
 
-- Without `cols` (auto mode): columns fit content; may overflow with long text.
+- Without `columns` (auto mode): columns fit content; may overflow with long text.
 - Only absolute units (e.g., `cm`, `pt`): table width = sum of columns; may be narrower or overflow.
 - With `fr` units: table expands proportionally to text width. `fr` and absolute units can be mixed — absolute columns take fixed widths first, and the remaining space is distributed by `fr` ratio.
 
-The `cols` parameter accepts an array of lengths, for example:
+The `columns` parameter accepts an array of lengths, for example:
 ```typst
-  cols: (8cm, 2cm, 2cm)       // Absolute units
-  cols: (3fr, 1fr, 1fr)       // fr units
-  cols: (3fr, 2cm, 1fr)       // Mixed
+  columns: (8cm, 2cm, 2cm)       // Absolute units
+  columns: (3fr, 1fr, 1fr)       // fr units
+  columns: (3fr, 2cm, 1fr)       // Mixed
 ```
 
-=== *Auto mode `cols: ()`*
+=== *Auto mode `columns: ()`*
 
 #captab(
   caption: [Auto Columns],
@@ -316,10 +316,10 @@ The `cols` parameter accepts an array of lengths, for example:
   | This is a very very, really really, truly truly long text | 42 | m/s |
 ]
 
-=== Absolute units `cols: (8cm, 3cm, 2cm)`
+=== Absolute units `columns: (8cm, 3cm, 2cm)`
 
 #captab(
-  cols: (8cm, 3cm, 2cm),
+  columns: (8cm, 3cm, 2cm),
   caption: [Absolute Columns],
 )[
   | Description | Value | Unit |
@@ -327,10 +327,10 @@ The `cols` parameter accepts an array of lengths, for example:
   | This is a very very, really really, truly truly long text | 42 | m/s |
 ]
 
-=== fr units `cols: (3fr, 1fr, 1fr)` — First column third as wide
+=== fr units `columns: (3fr, 1fr, 1fr)` — First column third as wide
 
 #captab(
-  cols: (3fr, 1fr, 1fr),
+  columns: (3fr, 1fr, 1fr),
   caption: [Proportional Columns],
 )[
   | Description | Value | Unit |
@@ -338,10 +338,10 @@ The `cols` parameter accepts an array of lengths, for example:
   | This is a very very, really really, truly truly long text | 42 | m/s |
 ]
 
-=== Mixed `cols: (5fr, 3cm, 1fr)` — Value column fixed at 3cm; Description and Unit columns share remaining width at 5:1
+=== Mixed `columns: (5fr, 3cm, 1fr)` — Value column fixed at 3cm; Description and Unit columns share remaining width at 5:1
 
 #captab(
-  cols: (5fr, 3cm, 1fr),
+  columns: (5fr, 3cm, 1fr),
   caption: [Mixed Columns],
 )[
   | Description | Value | Unit |
@@ -372,6 +372,46 @@ Add extra horizontal or vertical lines for complex layouts:
   | 4 | 5 | 6 |
   | 7 | 8 | 9 |
 ]
+
+== Three-Line Strokes
+
+Customize the top, middle and bottom rules of the three-line table via `top-rule` / `middle-rule` / `bottom-rule`. Any Typst stroke value works — thickness, color, even dashed:
+
+```typst
+#captab(
+  caption: [Custom Rule Styles],
+  top-rule: 2pt + red,             // 2pt red top rule
+  middle-rule: 0.5pt + gray,       // gray middle rule
+  bottom-rule: stroke(thickness: 2pt, dash: "dashed"), // dashed bottom
+)[
+  | A | B | C |
+  | - | - | - |
+  | 1 | 2 | 3 |
+]
+```
+
+#captab(
+  caption: [Custom Rule Styles],
+  top-rule: 2pt + red,
+  middle-rule: 0.5pt + gray,
+  bottom-rule: stroke(thickness: 2pt, dash: "dashed"),
+)[
+  | A | B | C |
+  | - | - | - |
+  | 1 | 2 | 3 |
+]
+
+You can also configure them globally via `captab-style`:
+
+```typst
+#show: captab-style.with(
+  top-rule: 1.2pt,
+  middle-rule: 0.4pt,
+  bottom-rule: 1.2pt,
+)
+```
+
+`auto` reads from global state (defaults: top/bottom `1.5pt`, middle `0.5pt`).
 
 #pagebreak()
 
@@ -915,6 +955,16 @@ This chapter is the authoritative reference listing every public function, every
 
 All parameters of `captab-style` with defaults. `auto` means auto-select based on document language.
 
+#block(
+  fill: rgb("#eef6ff"),
+  stroke: 0.5pt + rgb("#3b82f6"),
+  radius: 4pt,
+  inset: 8pt,
+)[
+  *Patch semantics*: every parameter actually defaults to `auto`, meaning "leave the current state untouched". The "Default" column below shows the value used the first time the function is called. Subsequent `captab-style.with(...)` calls only override the fields you supply — any field you omit keeps its previous value. This lets you patch one dimension at a time without re-stating the entire configuration.
+]
+
+
 #table(
   columns: (1.8fr, 1fr, 2.5fr),
   stroke: none,
@@ -956,6 +1006,9 @@ All parameters of `captab-style` with defaults. `auto` means auto-select based o
   [`outline-separator`],      [`" / "`],       [Outline separator],
   [`outline-newline`],        [`false`],       [Newline in outline],
   [`after-indent`],           [`auto`],        [Post-table indent fix],
+  [`top-rule`],               [`1.5pt`],       [Three-line top rule stroke (any stroke value, e.g. `2pt + red`)],
+  [`middle-rule`],            [`0.5pt`],       [Three-line middle rule stroke],
+  [`bottom-rule`],            [`1.5pt`],       [Three-line bottom rule stroke],
   table.hline(stroke: 1.5pt),
 )
 
@@ -964,6 +1017,16 @@ All parameters of `captab-style` with defaults. `auto` means auto-select based o
 == `capfig-style` Complete Parameters
 
 `capfig-style` merges figure style + figure spacing + subfigure defaults, updating all three states at once.
+
+#block(
+  fill: rgb("#eef6ff"),
+  stroke: 0.5pt + rgb("#3b82f6"),
+  radius: 4pt,
+  inset: 8pt,
+)[
+  *Patch semantics*: same as `captab-style` — every parameter defaults to `auto`; only the fields you supply are written back. The "Default" column shows the initial state-dictionary value.
+]
+
 
 *Caption/numbering/language section*
 
@@ -1061,7 +1124,8 @@ All parameters of `captab-style` with defaults. `auto` means auto-select based o
   table.hline(stroke: 1.5pt),
   table.header[*Param*][*Type*][*Description*],
   table.hline(stroke: 0.5pt),
-  [`cols`],        [`auto` / `int` / `array`], [Column config (`auto` or length array, supports `fr`/abs units)],
+  [`columns`],     [`auto` / `int` / `array`], [Column config (preferred; `auto` or length array, supports `fr`/abs units)],
+  [`cols`],        [`auto` / `int` / `array`], [Back-compat alias for `columns` (`columns` wins if both set)],
   [`size`],        [`auto` / `length`],        [Body font size],
   [`leading`],     [`auto` / `length`],        [Body line spacing],
   [`inset`],       [`auto` / `length` / `dictionary`], [Cell padding (dict `(x:, y:)` or scalar)],
@@ -1069,6 +1133,9 @@ All parameters of `captab-style` with defaults. `auto` means auto-select based o
   [`caption-en`],  [`none` / `content`],       [English caption],
   [`refer-to`],    [`none` / `label`],         [Label ref for continuation],
   [`show-caption`],[`auto` / `bool`],          [Show caption in continuation],
+  [`top-rule`],    [`auto` / `stroke`],        [Top rule stroke (`auto` reads global `top-rule`, default `1.5pt`)],
+  [`middle-rule`], [`auto` / `stroke`],        [Middle rule stroke (`auto` reads global `middle-rule`, default `0.5pt`)],
+  [`bottom-rule`], [`auto` / `stroke`],        [Bottom rule stroke (`auto` reads global `bottom-rule`, default `1.5pt`)],
   [`hlines`],      [`array` of `dictionary`],  [Extra horizontal rules (see below)],
   [`vlines`],      [`array` of `dictionary`],  [Extra vertical rules (see below)],
   [`label`],       [`none` / `label`],         [Cross-reference label],
@@ -1412,7 +1479,7 @@ utility functions, and the two main configuration functions.
 
 #tidy.show-module(
   tidy.parse-module(
-    read("/cap-able/0.0.1/src/config.typ"),
+    read("/cap-able/0.0.2/src/config.typ"),
     name: "config",
   ),
   show-module-name: false,
@@ -1426,7 +1493,7 @@ supporting both main and continuation (continued table/figure) modes.
 
 #tidy.show-module(
   tidy.parse-module(
-    read("/cap-able/0.0.1/src/bicap.typ"),
+    read("/cap-able/0.0.2/src/bicap.typ"),
     name: "bicap",
   ),
   show-module-name: false,
@@ -1440,7 +1507,7 @@ and its aliases.
 
 #tidy.show-module(
   tidy.parse-module(
-    read("/cap-able/0.0.1/src/table.typ"),
+    read("/cap-able/0.0.2/src/table.typ"),
     name: "table",
   ),
   show-module-name: false,
@@ -1454,7 +1521,7 @@ and multiple width modes.
 
 #tidy.show-module(
   tidy.parse-module(
-    read("/cap-able/0.0.1/src/note.typ"),
+    read("/cap-able/0.0.2/src/note.typ"),
     name: "note",
   ),
   show-module-name: false,
@@ -1468,7 +1535,7 @@ supporting bilingual captions, overlay labels, and subcaptions.
 
 #tidy.show-module(
   tidy.parse-module(
-    read("/cap-able/0.0.1/src/figure.typ"),
+    read("/cap-able/0.0.2/src/figure.typ"),
     name: "figure",
   ),
   show-module-name: false,
@@ -1583,6 +1650,24 @@ For manual control:
 // Chapter 11: Changelog
 // ============================================================
 = Changelog
+
+== Version 0.0.2
+
+*Bug fixes*:
+
+- `captab-style` / `capfig-style` / `cap-style` switched to *patch semantics*. Every parameter now defaults to `auto`, and only the fields you explicitly pass get written back to state. This means you can call `captab-style.with(...)` repeatedly to override one dimension at a time (e.g. enabling `outline-bilingual`) without resetting omitted fields (e.g. `cell-inset`) to their function defaults. Show / set rules now read the latest merged values via `context { state.get() }` at render time.
+
+*New features*:
+
+- `captab` and `captab-style` gain `top-rule` / `middle-rule` / `bottom-rule` parameters for customising the three-line table's top, middle, and bottom rules. Accept any Typst stroke value, e.g. `2pt + red`, `stroke(thickness: 1pt, dash: "dashed")`. Defaults remain `1.5pt` / `0.5pt` / `1.5pt`.
+- `captab` gains a `columns` parameter as the preferred alias of `cols`, matching Typst's native `table(columns: ...)` naming. `cols` is still accepted as a back-compat alias.
+
+*Documentation updates*:
+
+- Complete parameter tables include `top-rule` / `middle-rule` / `bottom-rule` / `columns`.
+- Added patch-semantics callouts before `captab-style` and `capfig-style` sections.
+- Added `== Three-Line Strokes` subsection with usage examples.
+- All `cols:` examples rewritten as `columns:`.
 
 == Version 0.0.1
 

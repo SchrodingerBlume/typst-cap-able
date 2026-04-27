@@ -16,7 +16,7 @@
 
 #import "@preview/tidy:0.4.3"
 #import "@preview/mantys:1.0.2": *
-#import "cap-able/0.0.1/lib.typ": *
+#import "cap-able/0.0.2/lib.typ": *
 
 // ============================================================
 // 文档元数据
@@ -24,7 +24,7 @@
 
 #show: mantys(
   name: "cap-able",
-  version: "0.0.1",
+  version: "0.0.2",
   authors: (
     "Schrödinger Blume",
   ),
@@ -111,7 +111,7 @@
 发布到 Typst Universe 后，可直接导入：
 
 ```typst
-#import "@preview/cap-able:0.0.1": *
+#import "@preview/cap-able:0.0.2": *
 ```
 
 == 手动安装
@@ -122,7 +122,7 @@
 + 使用相对路径导入
 
 ```typst
-#import "cap-able/0.0.1/lib.typ": *
+#import "cap-able/0.0.2/lib.typ": *
 ```
 
 // ============================================================
@@ -297,22 +297,22 @@
 
 == 列宽配置
 
-通过 `cols` 参数自定义列宽。
+通过 `columns` 参数自定义列宽（也可继续使用旧名 `cols`，效果完全一致）。
 
 *列宽规则：*
 
-- 不指定 `cols`（自动模式）：各列按内容自适应，内容过长时可能溢出文本区。
+- 不指定 `columns`（自动模式）：各列按内容自适应，内容过长时可能溢出文本区。
 - 仅绝对单位（如 `cm`、`pt`）：表格宽度为各列之和，可能窄于或超出文本区。
 - 含 `fr` 单位：表格按比例展开至文本区宽度。`fr` 与绝对单位可以混用——绝对列先占据固定宽度，剩余空间再按 `fr` 比例分配。
 
-`cols` 参数接受一个长度数组，例如：
+`columns` 参数接受一个长度数组，例如：
 ```typst
-  cols: (8cm, 2cm, 2cm)       // 绝对单位
-  cols: (3fr, 1fr, 1fr)       // 相对单位
-  cols: (3fr, 2cm, 1fr)       // 混用
+  columns: (8cm, 2cm, 2cm)       // 绝对单位
+  columns: (3fr, 1fr, 1fr)       // 相对单位
+  columns: (3fr, 2cm, 1fr)       // 混用
 ```
 
-=== *自动模式 `cols: ()`*
+=== *自动模式 `columns: ()`*
 
 #captab(
   caption: [自动列宽],
@@ -322,10 +322,10 @@
   | 很长很长、真的真的、特别特别长的描述文字 | 42 | m/s |
 ]
 
-=== 绝对单位 `cols: (8cm, 3cm, 2cm)`
+=== 绝对单位 `columns: (8cm, 3cm, 2cm)`
 
 #captab(
-  cols: (8cm, 3cm, 2cm),
+  columns: (8cm, 3cm, 2cm),
   caption: [绝对列宽],
 )[
   | 描述 | 数值 | 单位 |
@@ -333,10 +333,10 @@
   | 很长很长、真的真的、特别特别长的描述文字 | 42 | m/s |
 ]
 
-=== fr 单位 `cols: (3fr, 1fr, 1fr)` ——第一列是其他列宽度的三倍
+=== fr 单位 `columns: (3fr, 1fr, 1fr)` ——第一列是其他列宽度的三倍
 
 #captab(
-  cols: (3fr, 1fr, 1fr),
+  columns: (3fr, 1fr, 1fr),
   caption: [比例列宽],
 )[
   | 描述 | 数值 | 单位 |
@@ -344,10 +344,10 @@
   | 很长很长、真的真的、特别特别长的描述文字 | 42 | m/s |
 ]
 
-=== 混用 `cols: (5fr, 3cm, 1fr)`——数值列固定 3cm，描述列与单位列按 5:1 分配剩余宽度
+=== 混用 `columns: (5fr, 3cm, 1fr)`——数值列固定 3cm，描述列与单位列按 5:1 分配剩余宽度
 
 #captab(
-  cols: (5fr, 3cm, 1fr),
+  columns: (5fr, 3cm, 1fr),
   caption: [混用列宽],
 )[
 | 描述 | 数值 | 单位 |
@@ -378,6 +378,46 @@
   | 4 | 5 | 6 |
   | 7 | 8 | 9 |
 ]
+
+== 三线粗细
+
+可通过 `top-rule` / `middle-rule` / `bottom-rule` 自定义三线表的顶/中/底线。它们接受任何 Typst stroke 值——粗细、颜色、虚线都行：
+
+```typst
+#captab(
+  caption: [自定义线条样式],
+  top-rule: 2pt + red,             // 顶线 2pt 红色
+  middle-rule: 0.5pt + gray,       // 中线灰色
+  bottom-rule: stroke(thickness: 2pt, dash: "dashed"), // 底线虚线
+)[
+  | A | B | C |
+  | - | - | - |
+  | 1 | 2 | 3 |
+]
+```
+
+#captab(
+  caption: [自定义线条样式],
+  top-rule: 2pt + red,
+  middle-rule: 0.5pt + gray,
+  bottom-rule: stroke(thickness: 2pt, dash: "dashed"),
+)[
+  | A | B | C |
+  | - | - | - |
+  | 1 | 2 | 3 |
+]
+
+也可在 `captab-style` 中全局配置三线样式：
+
+```typst
+#show: captab-style.with(
+  top-rule: 1.2pt,
+  middle-rule: 0.4pt,
+  bottom-rule: 1.2pt,
+)
+```
+
+`auto` 表示从全局 state 读取（默认顶/底 `1.5pt`、中 `0.5pt`）。
 
 #pagebreak()
 
@@ -990,6 +1030,16 @@
 
 以下是 `captab-style` 的所有参数及默认值。`auto` 表示按文档语言自动选择。
 
+#block(
+  fill: rgb("#eef6ff"),
+  stroke: 0.5pt + rgb("#3b82f6"),
+  radius: 4pt,
+  inset: 8pt,
+)[
+  *patch 语义*：所有参数的实际默认值均为 `auto`，表示"保持当前 state 不变"。下表"默认"列展示的是首次未配置时的初始值。多次调用 `captab-style.with(...)` 时仅传入的字段会被覆盖，未传入字段会保留之前的设置 —— 因此可以连续 patch 多个不同维度的样式而不必每次重写所有参数。
+]
+
+
 #table(
   columns: (1.8fr, 1fr, 2.5fr),
   stroke: none,
@@ -1031,6 +1081,9 @@
   [`outline-separator`], [`" / "`], [目录双语分隔符],
   [`outline-newline`], [`false`], [目录双语是否换行],
   [`after-indent`], [`auto`], [表格后首行缩进修复（`auto` 按语言）],
+  [`top-rule`], [`1.5pt`], [三线表顶线 stroke（接受任何 stroke 值，如 `2pt + red`）],
+  [`middle-rule`], [`0.5pt`], [三线表中线 stroke],
+  [`bottom-rule`], [`1.5pt`], [三线表底线 stroke],
   table.hline(stroke: 1.5pt),
 )
 
@@ -1039,6 +1092,16 @@
 == `capfig-style` 完整参数
 
 `capfig-style` 合并了图片样式配置、图片间距和子图默认值，一次性更新全部图片相关状态。
+
+#block(
+  fill: rgb("#eef6ff"),
+  stroke: 0.5pt + rgb("#3b82f6"),
+  radius: 4pt,
+  inset: 8pt,
+)[
+  *patch 语义*：与 `captab-style` 一致，所有参数默认 `auto`，仅传入字段会覆盖之前的设置。下表"默认"列展示初始 state 字典中的值。
+]
+
 
 *题注/编号/语言部分*
 
@@ -1135,7 +1198,8 @@
   table.hline(stroke: 1.5pt),
   table.header[*参数*][*类型*][*说明*],
   table.hline(stroke: 0.5pt),
-  [`cols`], [`auto` / `int` / `array`], [列配置（`auto` 或长度数组，支持 `fr` 与绝对单位）],
+  [`columns`], [`auto` / `int` / `array`], [列配置（推荐用法，`auto` 或长度数组，支持 `fr` 与绝对单位）],
+  [`cols`], [`auto` / `int` / `array`], [#`columns` 的向后兼容别名（同时传入时 `columns` 优先）],
   [`size`], [`auto` / `length`], [内容字号（`auto` 取全局 `body-size`）],
   [`leading`], [`auto` / `length`], [内容行距（`auto` 取全局 `body-leading`）],
   [`inset`], [`auto` / `length` / `dictionary`], [单元格内边距],
@@ -1143,6 +1207,9 @@
   [`caption-en`], [`none` / `content`], [英文标题],
   [`refer-to`], [`none` / `label`], [续表引用的原表标签],
   [`show-caption`], [`auto` / `bool`], [续表是否显示标题文本],
+  [`top-rule`], [`auto` / `stroke`], [顶线 stroke（`auto` 取全局 `top-rule`，默认 `1.5pt`）],
+  [`middle-rule`], [`auto` / `stroke`], [中线 stroke（`auto` 取全局 `middle-rule`，默认 `0.5pt`）],
+  [`bottom-rule`], [`auto` / `stroke`], [底线 stroke（`auto` 取全局 `bottom-rule`，默认 `1.5pt`）],
   [`hlines`], [`array` of `dictionary`], [额外横线数组],
   [`vlines`], [`array` of `dictionary`], [额外竖线数组],
   [`label`], [`none` / `label`], [本表标签],
@@ -1489,7 +1556,7 @@
 
 #tidy.show-module(
   tidy.parse-module(
-    read("/cap-able/0.0.1/src/config.typ"),
+    read("/cap-able/0.0.2/src/config.typ"),
     name: "config",
   ),
   show-module-name: false,
@@ -1503,7 +1570,7 @@
 
 #tidy.show-module(
   tidy.parse-module(
-    read("/cap-able/0.0.1/src/bicap.typ"),
+    read("/cap-able/0.0.2/src/bicap.typ"),
     name: "bicap",
   ),
   show-module-name: false,
@@ -1517,7 +1584,7 @@
 
 #tidy.show-module(
   tidy.parse-module(
-    read("/cap-able/0.0.1/src/table.typ"),
+    read("/cap-able/0.0.2/src/table.typ"),
     name: "table",
   ),
   show-module-name: false,
@@ -1531,7 +1598,7 @@
 
 #tidy.show-module(
   tidy.parse-module(
-    read("/cap-able/0.0.1/src/note.typ"),
+    read("/cap-able/0.0.2/src/note.typ"),
     name: "note",
   ),
   show-module-name: false,
@@ -1545,7 +1612,7 @@
 
 #tidy.show-module(
   tidy.parse-module(
-    read("/cap-able/0.0.1/src/figure.typ"),
+    read("/cap-able/0.0.2/src/figure.typ"),
     name: "figure",
   ),
   show-module-name: false,
@@ -1661,6 +1728,24 @@ Markdown 表格语法（通过 `tablem`）的优势：
 // 第十一章：变更日志
 // ============================================================
 = 变更日志
+
+== 版本 0.0.2
+
+*Bug 修复*：
+
+- `captab-style` / `capfig-style` / `cap-style` 改为 *patch 语义*。所有形参的实际默认值改为 `auto`，仅显式传入的字段才会写回 state。这意味着可以连续调用 `captab-style.with(...)` 仅覆盖某一维度（如启用 `outline-bilingual`），而不会把未提供的字段（如 `cell-inset`）重置为函数默认值。show / set 规则现在也通过 `context { state.get() }` 在渲染时读取最新合并值。
+
+*新增功能*：
+
+- `captab` 与 `captab-style` 新增 `top-rule` / `middle-rule` / `bottom-rule` 三参数，用于自定义三线表的顶/中/底线。接受任何 Typst stroke 值，例如 `2pt + red`、`stroke(thickness: 1pt, dash: "dashed")`。默认值仍为顶/底 `1.5pt`、中 `0.5pt`。
+- `captab` 新增 `columns` 参数作为 `cols` 的推荐别名，与 Typst 原生 `table(columns: ...)` 命名一致；`cols` 仍向后兼容。
+
+*文档更新*：
+
+- 完整参数表新增 `top-rule` / `middle-rule` / `bottom-rule` / `columns` 行。
+- `captab-style` 与 `capfig-style` 节前添加 patch-语义说明块。
+- 新增 `== 三线粗细` 小节展示用法。
+- 全部 `cols:` 示例改写为 `columns:`。
 
 == 版本 0.0.1
 

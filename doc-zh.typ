@@ -16,7 +16,7 @@
 
 #import "@preview/tidy:0.4.3"
 #import "@preview/mantys:1.0.2": *
-#import "cap-able/0.0.2/lib.typ": *
+#import "cap-able/0.1.0/lib.typ": *
 
 // ============================================================
 // 文档元数据
@@ -24,7 +24,7 @@
 
 #show: mantys(
   name: "cap-able",
-  version: "0.0.2",
+  version: "0.1.0",
   authors: (
     "Schrödinger Blume",
   ),
@@ -111,7 +111,7 @@
 发布到 Typst Universe 后，可直接导入：
 
 ```typst
-#import "@preview/cap-able:0.0.2": *
+#import "@preview/cap-able:0.1.0": *
 ```
 
 == 手动安装
@@ -122,7 +122,7 @@
 + 使用相对路径导入
 
 ```typst
-#import "cap-able/0.0.2/lib.typ": *
+#import "cap-able/0.1.0/lib.typ": *
 ```
 
 // ============================================================
@@ -321,7 +321,7 @@
   | ---- | ---- | ---- |
   | 很长很长、真的真的、特别特别长的描述文字 | 42 | m/s |
 ]
-
+#pagebreak()
 === 绝对单位 `columns: (8cm, 3cm, 2cm)`
 
 #captab(
@@ -419,6 +419,148 @@
 
 `auto` 表示从全局 state 读取（默认顶/底 `1.5pt`、中 `0.5pt`）。
 
+== 关闭三线表（`three-line-table: false`）
+
+默认 `captab` 输出三线表（顶/中/底三条手画线，table 自身 `stroke: none`）。如果想要 *Typst 原生网格表*（每个单元格四边都画线），把 `three-line-table` 设为 `false`：
+
+```typst
+// 单次调用
+#captab(
+  caption: [Typst 默认网格表],
+  three-line-table: false,
+)[
+  | 编号 | 名称 | 数值 |
+  | ---- | ---- | ---- |
+  | 1    | A    | 100  |
+]
+
+// 全局
+#show: captab-style.with(three-line-table: false)
+// 或
+#show: cap-style.with(three-line-table: false)
+```
+
+`three-line-table: false` 时 `top-rule` / `middle-rule` / `bottom-rule` 全部不生效；`hlines` / `vlines` 用户自定义额外线条仍然有效。Typst 默认网格描边可以通过 `set table(stroke: ...)` 全局调整。
+
+== 透传 `tablem` / `table` 高级用法
+
+除了 captab 自己的命名参数（`columns` / `cols` / `align` / `size` / `leading` / `inset` / `caption…` / `…-rule` / `breakable` / `repeat-…` / `hlines` / `vlines` / `label` 等）以外，*任何其它命名参数*都会原样转发到底层 `table(...)` 调用，与 `tablem` 的 advanced usage 一致。可以用的参数包括：
+
+- `fill: color | function`（背景色，可按 `(x, y)` 函数返回不同颜色）
+- `stroke: stroke | function | dictionary`（按单元格控制描边）
+- `gutter` / `column-gutter` / `row-gutter`
+- `rows`
+- 其它任何 Typst `table()` 接受的命名参数
+
+```typst
+#let frame(stroke) = (x, y) => (
+  left: if x > 0 { 0pt } else { stroke },
+  right: stroke,
+  top: if y < 2 { stroke } else { 0pt },
+  bottom: stroke,
+)
+
+#captab(
+  caption: [月度阅读列表],
+  three-line-table: false,                                // 用全网格而不是三线
+  columns: (0.4fr, 1fr, 1fr),
+  align: left,
+  fill: (_, y) => if calc.odd(y) { rgb("EAF2F5") },        // 隔行底色
+  stroke: frame(rgb("21222C")),                            // 自定义描边
+)[
+  | *Month*  | *Title*               | *Author*            |
+  | -------- | --------------------- | ------------------- |
+  | January  | The Great Gatsby      | F. Scott Fitzgerald |
+  | February | To Kill a Mockingbird | Harper Lee          |
+]
+```
+
+#let frame(stroke) = (x, y) => (
+  left: if x > 0 { 0pt } else { stroke },
+  right: stroke,
+  top: if y < 2 { stroke } else { 0pt },
+  bottom: stroke,
+)
+
+#captab(
+  caption: [月度阅读列表],
+  three-line-table: false,                                // 用全网格而不是三线
+  columns: (0.4fr, 1fr, 1fr),
+  align: left,
+  fill: (_, y) => if calc.odd(y) { rgb("EAF2F5") },        // 隔行底色
+  stroke: frame(rgb("21222C")),                            // 自定义描边
+)[
+  | *Month*  | *Title*               | *Author*            |
+  | -------- | --------------------- | ------------------- |
+  | January  | The Great Gatsby      | F. Scott Fitzgerald |
+  | February | To Kill a Mockingbird | Harper Lee          |
+]
+
+== 跨页
+
+0.1.0 起 `captab` 默认允许长表跨页。两个相关参数：
+
+- `breakable`（bool，默认 `true`）—— 是否允许跨页。`false` 时整张表保持原子性，超长会被压在同一页。
+- `repeat-header`（bool / int，默认 `true`）—— 跨页时重复表头行（基于 Typst 原生 `table.header(repeat: ..)`）。`true` 在每个续页都重复；传入正整数 `n` 表示只在前 `n` 个续页重复；`false` 关闭重复。
+- `repeat-caption`（bool，默认 `false`）—— 跨页时是否在每个续页顶部再渲染一次"续表 X.Y caption"（与 `refer-to` 模式同款格式）。第一页仍显示完整原标题。
+
+```typst
+#captab(
+  caption: [长数据表],
+  breakable: true,         // 允许跨页（默认）
+  repeat-header: true,     // 跨页时重复表头（默认）
+  repeat-caption: true,    // 续页带"续表 X.Y"标题
+)[
+  | 编号 | 名称 | 数值 |
+  | ---- | ---- | ---- |
+  // ...
+]
+```
+
+或在全局配置：
+
+```typst
+#show: captab-style.with(
+  breakable: true,
+  repeat-header: true,
+  repeat-caption: true,
+)
+```
+
+#captab(
+  caption: [长数据表],
+  breakable: true,         // 允许跨页（默认）
+  repeat-header: true,     // 跨页时重复表头（默认）
+  repeat-caption: true,    // 续页带"续表 X.Y"标题
+)[
+  | 编号 | 名称   | 数值  |
+  | ---- | ------ | ----- |
+  | 001  | 苹果   | 12.50 |
+  | 002  | 香蕉   | 8.30  |
+  | 003  | 橙子   | 15.00 |
+  | 004  | 葡萄   | 22.80 |
+  | 005  | 西瓜   | 35.60 |
+  | 006  | 芒果   | 18.90 |
+  | 007  | 菠萝   | 25.40 |
+  | 008  | 草莓   | 28.70 |
+  | 009  | 蓝莓   | 45.20 |
+  | 010  | 桃子   | 16.40 |
+  | 011  | 梨     | 10.80 |
+  | 012  | 樱桃   | 52.30 |
+  | 013  | 柚子   | 19.60 |
+  | 014  | 火龙果 | 21.50 |
+  | 015  | 猕猴桃 | 14.30 |
+  | 016  | 哈密瓜 | 32.90 |
+  | 017  | 椰子   | 26.80 |
+  | 018  | 荔枝   | 38.40 |
+  | 019  | 龙眼   | 24.70 |
+  | 020  | 山竹   | 48.50 |
+]
+
+*实现说明*：`repeat-caption` 不会重复登记 figure 编号——续页通过 `query(label)` 查询主表位置、读取计数器值、走 `_make_caption_content` 的 refer-to 分支生成"续表 X.Y …"。如果用户没传 `label`，cap-able 会自动合成一个隐藏 label（`__captab_repeat_<n>`）仅供内部检索。caption 行与表头行被放进两个独立的 `table.header`（用 `level: 1/2` 分层），所以 `repeat-caption: true` 与 `repeat-header: false` 可以共存——caption 重复但表头不重复。
+
+`refer-to` 显式续表（手动拆表）仍然保留，适合需要分别在不同位置/不同章节插入的"续表"。
+
 #pagebreak()
 
 == 表注
@@ -450,7 +592,47 @@
 
 == 续表
 
-对于跨页表格，使用 `refer-to` 参数引用原表：
+cap-able 支持两种续表方式，按使用场景挑：
+
++ *自动跨页 + 续页重复题注（推荐，0.1.0 起）* —— 让 `captab` 自然跨页，每个续页顶部自动出现"续表 X.Y"。
++ *手动 `refer-to`（一直保留）* —— 手动把表拆成两段以上，第二段用 `refer-to` 引用原表。适合需要在两段之间插入文字、图片或其它续表逻辑的场景。
+
+=== 自动跨页 + 续页重复题注
+
+只要给 `captab` 加 `repeat-caption: true`（`breakable` 默认就是 `true`），cap-able 会用 Typst 原生 `table.header(repeat: ...)` 在每个续页顶部重新输出"续表 X.Y"。编号锁定到主表，不重复登记 figure。
+
+```typst
+#captab(
+  caption: [长数据表],
+  caption-en: [Long Data Table],
+  repeat-caption: true,         // 续页带"续表 X.Y"标题
+  // breakable: true,           // 默认就是 true
+  // repeat-header: true,       // 默认表头也跟着重复
+  label: <tab:long-auto>,
+)[
+  | ID | 数值 |
+  | -- | ---- |
+  | 1  | 100  |
+  | 2  | 200  |
+  | 3  | 300  |
+  // ...
+]
+```
+
+如果只想关掉 markdown 表头跨页重复但保留题注重复，传 `repeat-header: false`。如果连题注也不想重复（仅让表自然跨页），保持 `repeat-caption: false`（默认）即可。
+
+#block(
+  fill: rgb("#ecfeff"),
+  stroke: 0.5pt + rgb("#06b6d4"),
+  radius: 4pt,
+  inset: 8pt,
+)[
+  *推荐用途*：长数据表、需要全自动跨页的场景。一行 `repeat-caption: true` 搞定，不需要手动拆表，也不需要写两遍 caption。
+]
+
+=== 手动 `refer-to`（保留方式）
+
+如果需要在原表和续表之间插入说明文字、注脚、或者额外的列结构调整，则用 `refer-to` 显式拆表：
 
 ```typst
 #set text(lang: "zh")
@@ -460,14 +642,24 @@
   caption: [长数据表],
   caption-en: [Long Data Table],
   label: <tab:long>,        // 设置标签，供续表引用
-)[...]
+)[
+  | ID | 数值 |
+  | -- | ---- |
+  | 1  | 100  |
+]
 
-// 续表
+这里可以插入任意中间内容（说明文字、配图等）
+
+// 续表（手动接续）
 #captab(
   caption: [长数据表],        // 可提供相同标题，也可省略
   caption-en: [Long Data Table],
   refer-to: <tab:long>,       // 引用原表获取编号
-)[...]
+)[
+  | ID | 数值 |
+  | -- | ---- |
+  | 2  | 200  |
+]
 ```
 
 #set text(lang: "zh")
@@ -482,10 +674,13 @@
   | 1  | 100  |
 ]
 
+这里可以插入任意中间内容（说明文字、配图等）
+
 #captab(
   caption: [长数据表],
   caption-en: [Long Data Table],
   refer-to: <tab:long>,
+  show-caption: true,         // 强制显示标题文本（默认 auto 时 caption 不为空也会显示）
 )[
   | ID | 数值 |
   | -- | ---- |
@@ -494,18 +689,18 @@
 
 #set text(lang: "en")
 
-续表会自动：
+无论用哪种方式，续表都会自动：
 
 - 使用与原表相同的编号
-- 添加"续表X"或"表X（续）"前缀/后缀
+- 添加"续表 X"或"表 X（续）"前缀/后缀
 - 不在目录中新建条目
 
 === 续表模式
 
-通过 `continued-mode` 参数控制续表样式：
+通过 `continued-mode` 参数控制续表样式（两种续表方式都适用）：
 
-- `"prefix"`（默认）：前缀模式，如"续表1"
-- `"suffix"`：后缀模式，如"表1（续）"
+- `"prefix"`（默认）：前缀模式，如"续表 1"
+- `"suffix"`：后缀模式，如"表 1（续）"
 
 // ============================================================
 // 第五章：图片详解
@@ -1019,10 +1214,14 @@
   [`note-size`], [`10.5pt`], [注释字号],
   [`note-leading`], [`6.5pt`], [注释行距],
   [`note-justify`], [`true`], [注释是否两端对齐],
+  [`caption-position`], [`auto`], [#raw("#bicap()[body]") 模式下题注位置（同时作用于 table/figure；`auto` = 各自保留 kind 默认）],
+  [`three-line-table`], [`auto`], [是否使用三线表样式（仅作用于表；`auto` = 不改 state）],
+  [`cell-inset`], [`auto`], [单元格内边距（仅作用于表；与 `inset` 互为别名）],
+  [`inset`], [`auto`], [`cell-inset` 的别名],
   table.hline(stroke: 1.5pt),
 )
 
-*未在 `cap-style` 列出的参数* —— 表体（`body-size` / `body-leading` / `cell-inset` / `table-below`）和图片专属（`figure-above` / `figure-below` / `subcaption-*` / `gutter` / 子图标签 `label-*`）—— 仍需通过 `captab-style` / `capfig-style` 单独配置。
+*未在 `cap-style` 列出的参数* —— 表体（`body-size` / `body-leading` / `table-below`）和图片专属（`figure-above` / `figure-below` / `subcaption-*` / `gutter` / 子图标签 `label-*`）—— 仍需通过 `captab-style` / `capfig-style` 单独配置。
 
 #pagebreak()
 
@@ -1071,7 +1270,8 @@
   [`enable-english-caption`], [`true`], [是否生成英文副标题],
   [`body-size`], [`10.5pt`], [表格内容字号],
   [`body-leading`], [`0.45em`], [表格内容行距],
-  [`cell-inset`], [`(x: 5pt, y: 5pt)`], [单元格内边距（字典或标量）],
+  [`cell-inset`], [`(x: 5pt, y: 5pt)`], [单元格内边距（字典或标量）；与 `inset` 互为别名，同时传入时 `cell-inset` 优先],
+  [`inset`], [`auto`], [`cell-inset` 的别名（与 captab 形参的 `inset` 命名一致）],
   [`note-above`], [`0.5em`], [表注上方间距],
   [`note-below`], [`1em`], [表注下方间距],
   [`note-size`], [`10.5pt`], [表注字号],
@@ -1081,9 +1281,14 @@
   [`outline-separator`], [`" / "`], [目录双语分隔符],
   [`outline-newline`], [`false`], [目录双语是否换行],
   [`after-indent`], [`auto`], [表格后首行缩进修复（`auto` 按语言）],
-  [`top-rule`], [`1.5pt`], [三线表顶线 stroke（接受任何 stroke 值，如 `2pt + red`）],
+  [`three-line-table`], [`true`], [是否使用三线表样式（`false` 时跳过手动三线，使用 Typst 默认 `table()` 网格描边）],
+  [`top-rule`], [`1.5pt`], [三线表顶线 stroke（接受任何 stroke 值，如 `2pt + red`；仅 `three-line-table: true` 时生效）],
   [`middle-rule`], [`0.5pt`], [三线表中线 stroke],
   [`bottom-rule`], [`1.5pt`], [三线表底线 stroke],
+  [`breakable`], [`true`], [表格能否跨页（外层 block 的 `breakable`）],
+  [`repeat-header`], [`true`], [跨页时是否重复 markdown 表头行（`true` / `false` / 正整数 `n`）],
+  [`repeat-caption`], [`false`], [跨页时是否在每个续页顶部重复题注（"续表 X.Y"格式，复用 refer-to 渲染）],
+  [`caption-position`], [`top`], [#raw("#bicap()[body]") 模式下题注相对 body 的位置（`top` / `bottom`）],
   table.hline(stroke: 1.5pt),
 )
 
@@ -1186,6 +1391,7 @@
   [`label-bg-radius`], [`2pt`], [矩形圆角],
   [`label-bg-inset`], [`3pt`], [背景内边距],
   [`label-sep`], [`auto`], [子图引用分隔符（`auto`：数字 → `"."`，字母 → `""`）],
+  [`caption-position`], [`bottom`], [#raw("#bicap()[body]") 模式下题注相对 body 的位置（图片默认 `bottom`）],
   table.hline(stroke: 1.5pt),
 )
 
@@ -1200,16 +1406,22 @@
   table.hline(stroke: 0.5pt),
   [`columns`], [`auto` / `int` / `array`], [列配置（推荐用法，`auto` 或长度数组，支持 `fr` 与绝对单位）],
   [`cols`], [`auto` / `int` / `array`], [#`columns` 的向后兼容别名（同时传入时 `columns` 优先）],
+  [`align`], [`auto` / `alignment` / `array` / `function`], [单元格对齐；与 markdown `:---:` 语法合并（透传给 tablem 后再回到 `table.align`）],
   [`size`], [`auto` / `length`], [内容字号（`auto` 取全局 `body-size`）],
   [`leading`], [`auto` / `length`], [内容行距（`auto` 取全局 `body-leading`）],
-  [`inset`], [`auto` / `length` / `dictionary`], [单元格内边距],
+  [`inset`], [`auto` / `length` / `dictionary`], [单元格内边距（与 `cell-inset` 互为别名；同时传入时 `cell-inset` 优先）],
+  [`cell-inset`], [`auto` / `length` / `dictionary`], [`inset` 的别名（与全局 `captab-style.cell-inset` 命名一致）],
   [`caption`], [`none` / `content`], [主语言标题],
   [`caption-en`], [`none` / `content`], [英文标题],
   [`refer-to`], [`none` / `label`], [续表引用的原表标签],
   [`show-caption`], [`auto` / `bool`], [续表是否显示标题文本],
-  [`top-rule`], [`auto` / `stroke`], [顶线 stroke（`auto` 取全局 `top-rule`，默认 `1.5pt`）],
+  [`three-line-table`], [`auto` / `bool`], [是否使用三线表样式（`auto` 取全局 `three-line-table`，默认 `true`）],
+  [`top-rule`], [`auto` / `stroke`], [顶线 stroke（`auto` 取全局 `top-rule`，默认 `1.5pt`；仅 `three-line-table: true` 时生效）],
   [`middle-rule`], [`auto` / `stroke`], [中线 stroke（`auto` 取全局 `middle-rule`，默认 `0.5pt`）],
   [`bottom-rule`], [`auto` / `stroke`], [底线 stroke（`auto` 取全局 `bottom-rule`，默认 `1.5pt`）],
+  [`breakable`], [`auto` / `bool`], [是否允许跨页（`auto` 取全局 `breakable`，默认 `true`）],
+  [`repeat-header`], [`auto` / `bool` / `int`], [跨页时是否重复表头行（`auto` 取全局 `repeat-header`）],
+  [`repeat-caption`], [`auto` / `bool`], [跨页时是否在每个续页顶部重复题注（"续表 X.Y"格式）],
   [`hlines`], [`array` of `dictionary`], [额外横线数组],
   [`vlines`], [`array` of `dictionary`], [额外竖线数组],
   [`label`], [`none` / `label`], [本表标签],
@@ -1297,6 +1509,16 @@
 
 `bicap` 是 `cap-able` 的核心标题生成函数，可独立于 `captab` / `capfig` 使用，用于自定义布局或在 Typst 原生 table/figure 中嵌入双语标题。
 
+从 0.1.0 起 `bicap` 同时支持 *两种调用形式*：
+
+- *仅题注*：`#bicap(caption: ..., kind: ...)` —— 在独立的不换页 block 里只渲染题注。
+- *题注 + body*：`#bicap(caption: ..., kind: ...)[body]` —— 把 `body` 与题注一起包进同一个不换页 block，相当于 cap-able 风味的 `figure(body, caption: ...)`。`body` 也可以用名参 `body: [...]` 传。
+
+题注与 body 的相对位置由 `caption-position` 控制：
+
+- 默认值跟随全局 state：table 的初始 state 是 `top`，figure 是 `bottom`。
+- 全局可在 `captab-style` / `capfig-style` 里通过 `caption-position: top | bottom` 覆盖。
+- 单次调用可在 `bicap` 上用 `position: top | bottom` 直接覆盖。
 
 #table(
   columns: (1.2fr, 1.2fr, 2.6fr),
@@ -1312,11 +1534,16 @@
   [`kind`], [`"table"` / `"figure"`], [类别（决定计数器与配置源）],
   [`show-caption`], [`auto` / `bool`], [续表/图是否显示标题文本],
   [`config`], [`auto` / `dictionary`], [`auto` 按 `kind` 读取全局配置；否则用给定字典],
+  [`position`], [`auto` / `top` / `bottom`], [题注相对 body 的位置（仅在传 body 时生效；`auto` 跟随全局 `caption-position`）],
+  [`breakable`], [`bool`], [外层 block 是否允许跨页（默认 `true`，让 body 内部本身可跨页的内容自然顺延）],
+  [`repeat-caption`], [`bool`], [跨页时是否在 body 内每张原生 `#table()` 顶部重复题注（默认 `false`；仅 `kind == "table"` 生效）],
+  [`repeat-header`], [`auto` / `bool` / `int`], [覆盖 body 内 `#table()` markdown 表头的 `repeat` 设定（`auto` 不干涉，`true/false/int` 强制覆盖；仅 `kind == "table"` 生效）],
+  [`body`], [`none` / `content`], [可选的 body 内容；也可用尾随内容块 `#bicap()[...]` 传入],
   table.hline(stroke: 1.5pt),
 )
 
 ```typst
-// 独立为图片生成双语标题
+// 形式一：仅题注（与 0.0.x 行为一致）
 #align(center)[
   #rect(width: 6cm, height: 3cm, fill: gray.lighten(70%))
   #bicap(
@@ -1326,7 +1553,75 @@
     label: <fig:custom>,
   )
 ]
+
+// 形式二：bicap 同时包 body（kind=table，题注默认在上）
+#bicap(
+  caption: [实验数据],
+  kind: "table",
+  label: <tab:exp>,
+)[
+  #table(
+    columns: 3,
+    [A], [B], [C],
+    [1], [2], [3],
+  )
+]
+
+// kind=figure，题注默认在下；用 position: top 强制在上
+#bicap(
+  caption: [示意图],
+  kind: "figure",
+  position: top,
+)[
+  #image("foo.png", width: 6cm)
+]
+
+// 长表跨页时让题注在每个续页顶部重复（kind:table 才有效）
+#bicap(
+  caption: [长数据表],
+  kind: "table",
+  repeat-caption: true,
+  label: <tab:long>,
+)[
+  #table(
+    columns: 4,
+    table.header([编号], [名称], [数值], [备注]),
+    // ... 50+ 行数据
+  )
+]
+
+// 让续页只重复题注、关闭 markdown 表头重复
+#bicap(
+  caption: [长表],
+  kind: "table",
+  repeat-caption: true,
+  repeat-header: false,
+)[
+  #table(
+    columns: 4,
+    table.header([列1], [列2], [列3], [列4]),
+    // ...
+  )
+]
+
+// 也可以单独关掉 markdown 表头重复，不开启 repeat-caption
+#bicap(
+  caption: [短表],
+  kind: "table",
+  repeat-header: false,
+)[ #table(columns: 3, table.header([A], [B], [C]), ...) ]
 ```
+
+#block(
+  fill: rgb("#fff7e6"),
+  stroke: 0.5pt + rgb("#f59e0b"),
+  radius: 4pt,
+  inset: 8pt,
+)[
+  *约定：一个 bicap 里只放一张 `#table()`*。`repeat-caption: true` 时 bicap 会用 `show table:` 给 body 内*每张*原生 `#table()` 注入同一个续表标题，这意味着如果你在同一个 bicap 里塞了多张表，所有表的续页都会出现同样的标题——通常不是你想要的。需要分别为多张表写题注时，请用多个 `bicap(...)` 调用，或直接用 `captab` 管理每张表。
+
+  另：bicap 已经检测了 `captab` 自带的 *level≥2* 嵌套 header 结构，如果 body 里是 `captab(repeat-caption: true)` 出来的内容，bicap 会跳过自己的注入，避免双层 caption。但*仍然不建议*把 captab 嵌进开了 `repeat-caption` 的 bicap 里——语义混乱，编号也容易乱。
+]
 
 == `capfig` 完整参数
 
@@ -1556,7 +1851,7 @@
 
 #tidy.show-module(
   tidy.parse-module(
-    read("/cap-able/0.0.2/src/config.typ"),
+    read("/cap-able/0.1.0/src/config.typ"),
     name: "config",
   ),
   show-module-name: false,
@@ -1570,7 +1865,7 @@
 
 #tidy.show-module(
   tidy.parse-module(
-    read("/cap-able/0.0.2/src/bicap.typ"),
+    read("/cap-able/0.1.0/src/bicap.typ"),
     name: "bicap",
   ),
   show-module-name: false,
@@ -1584,7 +1879,7 @@
 
 #tidy.show-module(
   tidy.parse-module(
-    read("/cap-able/0.0.2/src/table.typ"),
+    read("/cap-able/0.1.0/src/table.typ"),
     name: "table",
   ),
   show-module-name: false,
@@ -1598,7 +1893,7 @@
 
 #tidy.show-module(
   tidy.parse-module(
-    read("/cap-able/0.0.2/src/note.typ"),
+    read("/cap-able/0.1.0/src/note.typ"),
     name: "note",
   ),
   show-module-name: false,
@@ -1612,7 +1907,7 @@
 
 #tidy.show-module(
   tidy.parse-module(
-    read("/cap-able/0.0.2/src/figure.typ"),
+    read("/cap-able/0.1.0/src/figure.typ"),
     name: "figure",
   ),
   show-module-name: false,
@@ -1690,7 +1985,7 @@ Markdown 表格语法（通过 `tablem`）的优势：
 
 == 续表为什么不显示标题文本？
 
-默认情况下，续表在未提供 `caption` 时只显示编号。强制显示标题文本：
+这条仅针对 *手动 `refer-to`* 方式：默认情况下续表在未提供 `caption`（且 `show-caption` 是 `auto`）时只显示"续表 X.Y"编号。要让续表带上完整标题文本：
 
 ```typst
 #captab(
@@ -1699,6 +1994,17 @@ Markdown 表格语法（通过 `tablem`）的优势：
   show-caption: true,                       // 或强制显示
 )[...]
 ```
+
+如果你想*自动跨页*让每个续页顶部都自动出现"续表 X.Y 原始标题"，则用 0.1.0 起的新写法：
+
+```typst
+#captab(
+  caption: [原始标题],
+  repeat-caption: true,    // 让 captab 在跨页时把题注复刻到续页顶部
+)[...]
+```
+
+完整对比见*表格详解 → 续表*一节。
 
 == 如何修复中文等语言中表格后的首行缩进丢失？
 
@@ -1724,10 +2030,112 @@ Markdown 表格语法（通过 `tablem`）的优势：
 )
 ```
 
+== 为什么没有 `capsubtab`（子表）？
+
+cap-able 目前*不提供* `capsubtab`。原因：
+
+1. *学术排版里子表本来就罕见*。绝大多数论文规范都没有专门讲子表，因为更常见的做法是把对照数据合并成 *一张大表 + 加一列"组别"*，而不是拆成 (a)(b) 两张子表。子图（`capsubfig`）在文献里到处都是，子表则属于个位数比例的特殊场景。
+2. *跨页问题更严重*。子表一行作为原子块跨页就破版，长内容直接溢出；子图（一般是图片）天生短，跨页问题不突出。
+3. *用户已有出路*。需要并排两张小表时，`grid` + 多个 `captab(caption: none)` + 外层 `figure(kind: table, ...)` 组合就能凑出来；唯一缺失的是子表 `@tab:sub-a` cross-reference 自动解析成 "1.2a" 这种语法，但绝大多数子表场景在正文里直接写"如表 1.2a 所示"也行。
+
+#block(
+  fill: rgb("#fff7e6"),
+  stroke: 0.5pt + rgb("#f59e0b"),
+  radius: 4pt,
+  inset: 8pt,
+)[
+  *状态*：upstream 已开 issue 跟踪，目前*无人请求*。如果你确实需要并觉得现成的 grid 写法不够，欢迎在 GitHub issues 上 +1，需求量到了再实现。
+]
+
+举一个并排小表的示例写法：
+
+```typst
+#figure(
+  kind: table,
+  supplement: [表],
+  caption: figure.caption(position: top)[实验组与对照组数据对比],
+  grid(
+    columns: 2,
+    column-gutter: 1em,
+    align: top,
+    [
+      *(a) 实验组* \
+      #captab(caption: none)[
+        | 编号 | 数值 |
+        | ---- | ---- |
+        | 1    | 100  |
+        | 2    | 200  |
+      ]
+    ],
+    [
+      *(b) 对照组* \
+      #captab(caption: none)[
+        | 编号 | 数值 |
+        | ---- | ---- |
+        | 1    | 95   |
+        | 2    | 205  |
+      ]
+    ],
+  ),
+)<tab:cmp>
+```
+
+#figure(
+  kind: table,
+  supplement: [表],
+  caption: figure.caption(position: top)[实验组与对照组数据对比],
+  grid(
+    columns: 2,
+    column-gutter: 1em,
+    align: top,
+    [
+      *(a) 实验组* \
+      #captab(caption: none)[
+        | 编号 | 数值 |
+        | ---- | ---- |
+        | 1    | 100  |
+        | 2    | 200  |
+      ]
+    ],
+    [
+      *(b) 对照组* \
+      #captab(caption: none)[
+        | 编号 | 数值 |
+        | ---- | ---- |
+        | 1    | 95   |
+        | 2    | 205  |
+      ]
+    ],
+  ),
+)<tab:cmp>
+
+引用：`@tab:cmp` 解析为 "@tab:cmp"。子表 (a)(b) 没有自动 label，正文里直接写"如@tab:cmp(a) 所示"即可。
+
 // ============================================================
 // 第十一章：变更日志
 // ============================================================
 = 变更日志
+
+== 版本 0.1.0
+
+*新增功能*：
+
+- `captab` 与 `captab-style` 新增 `breakable` 参数（bool，默认 `true`）—— 控制三线表能否跨页。外层 `block` 的 `breakable` 跟随该参数，超长表格不再被压死在一页。
+- 新增 `repeat-header` 参数（bool / 正整数，默认 `true`）—— 跨页时重复 markdown 表头行，基于 Typst 原生 `table.header(repeat: ...)`。`true`=每个续页都重复；`n`=只在前 n 个续页重复；`false`=关闭重复。
+- 新增 `repeat-caption` 参数（bool，默认 `false`）—— 跨页时在每个续页顶部再渲染一次"续表 X.Y caption"（与 `refer-to` 模式同款格式，编号锁定到主表）。实现上把 caption 行与 markdown 表头行放进两个独立的 `table.header`（用 `level: 1/2` 分层），所以 `repeat-caption: true` 与 `repeat-header: false` 可以共存。续页通过 `query(label)` 查询主表位置、走 `_make_caption_content` 的 refer-to 分支生成续表标题，*不会* 重复登记 figure 编号；用户没传 `label` 时自动合成隐藏 label。
+- `bicap` 支持 `#bicap(...)[body]` 形式：把题注与 body 一起包进同一个不换页 block，等价于 cap-able 风味的 `figure(body, caption: ...)`。`body` 也可用名参 `body: [...]` 传。
+- `bicap` 新增 `repeat-caption`（bool，默认 false）—— `kind: "table"` 时，body 内每张原生 `#table()` 跨页时在续页顶部重复题注（与 `captab(repeat-caption: true)` 同款）。约定：一个 bicap 里只放一张表，多表会被注入相同题注。
+- `bicap` 新增 `repeat-header`（auto/bool/int，默认 auto）—— 覆盖 body 内 `#table()` 的 markdown 表头 `repeat` 设定，与 `repeat-caption` 互相独立；可用 `repeat-header: false` 单独关掉表头跨页重复。
+- `captab` 与 `captab-style` / `cap-style` 新增 `three-line-table` 配置（bool，默认 `true`）—— 设为 `false` 关闭三线表样式，改用 Typst 原生 `table()` 默认网格描边；此时 `top-rule` / `middle-rule` / `bottom-rule` 不生效，用户自定义 `hlines` / `vlines` 仍正常工作。
+- `captab` 形参新增 `align: auto`，并加 `..extra-args` 接收任意其它命名参数（`fill` / `stroke` / `gutter` / `column-gutter` / `row-gutter` / `rows` 等），透传给底层 `table(...)`，与 `tablem` 的 advanced-usage 例子保持一致。用户传 `stroke` 会覆盖三线模式默认的 `stroke: none`（建议同时设 `three-line-table: false`，否则三条手画 hline 会叠在用户 stroke 上）。
+- `cell-inset` 与 `inset` 在 `captab` / `captab-style` / `cap-style` 三处互为别名：原本 `captab` 用 `inset:` 而全局配置用 `cell-inset:`，命名不一致；现在两个名字都能用，同时传入时 `cell-inset` 优先（与 state 字段名一致）。
+- 修正 `captab` 的对齐解析：用户传 *已经是 2D 的对齐* （如 `align: horizon + center`）时不再抛 "cannot add a vertical and a 2D alignment" 错；逻辑改为只在 `.y == none` 时才补 `+ horizon`，2D 对齐原样保留。
+- 新增 `caption-position` 配置（`top` / `bottom`）—— 在 `bicap()[body]` 模式下控制题注在 body 的上方或下方。默认值跟随 kind：table=top、figure=bottom；可在 `captab-style` / `capfig-style` / `cap-style` 全局覆盖，或单次调用通过 `bicap(position: ...)` 覆盖。
+- `bicap` 新增 `breakable` 参数（bool，默认 `true`）—— 外层 block 是否允许跨页。原来的实现把 caption + body 锁在 `breakable: false` 的 block 里会阻止内部本身可跨页的内容（如长 captab）跨页；改为默认透明，让内部 breakable 元素自然顺延。如果想保留旧的"标题 + body 原子化"行为，显式传 `breakable: false`。
+
+*兼容性*：
+
+- 默认值变化：`breakable` 默认从 0.0.x 隐式的 `false` 改为 `true`。如希望保留旧行为，请显式传 `breakable: false` 或在 `captab-style.with(...)` 中全局设置。
 
 == 版本 0.0.2
 

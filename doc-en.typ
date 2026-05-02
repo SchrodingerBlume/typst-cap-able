@@ -13,7 +13,7 @@
 
 #import "@preview/tidy:0.4.3"
 #import "@preview/mantys:1.0.2": *
-#import "cap-able/0.0.2/lib.typ": *
+#import "cap-able/0.1.0/lib.typ": *
 
 // ============================================================
 // Document Metadata
@@ -21,7 +21,7 @@
 
 #show: mantys(
   name: "cap-able",
-  version: "0.0.2",
+  version: "0.1.0",
   authors: (
     "Schrödinger Blume",
   ),
@@ -54,7 +54,7 @@
 // ============================================================
 // Chapter 1: Introduction
 // ============================================================
-#set text(font:("Noto Serif CJK SC", "Devanagari Sangam MN"))
+#set text(font:("Noto Serif", "Noto Serif CJK SC", "Devanagari Sangam MN"))
 #show raw: set text(font: "LXGW WenKai Mono")
 
 // mantys show ref rule outputs nothing for plain figure (kind: image/table),
@@ -108,7 +108,7 @@ For documentation generation only:
 Once published to Typst Universe, import directly:
 
 ```typst
-#import "@preview/cap-able:0.0.2": *
+#import "@preview/cap-able:0.1.0": *
 ```
 
 == Manual Installation
@@ -119,7 +119,7 @@ After downloading from the repository:
 + Import with a relative path:
 
 ```typst
-#import "cap-able/0.0.2/lib.typ": *
+#import "cap-able/0.1.0/lib.typ": *
 ```
 
 // ============================================================
@@ -315,7 +315,7 @@ The `columns` parameter accepts an array of lengths, for example:
   | ----------- | ----- | ---- |
   | This is a very very, really really, truly truly long text | 42 | m/s |
 ]
-
+#pagebreak()
 === Absolute units `columns: (8cm, 3cm, 2cm)`
 
 #captab(
@@ -375,7 +375,7 @@ Add extra horizontal or vertical lines for complex layouts:
 
 == Three-Line Strokes
 
-Customize the top, middle and bottom rules of the three-line table via `top-rule` / `middle-rule` / `bottom-rule`. Any Typst stroke value works — thickness, color, even dashed:
+Customize the top, middle and bottom rules of the three-line table via `top-rule` / `middle-rule` / `bottom-rule`. Any Typst stroke value works — thickness, color, dashed:
 
 ```typst
 #captab(
@@ -413,6 +413,148 @@ You can also configure them globally via `captab-style`:
 
 `auto` reads from global state (defaults: top/bottom `1.5pt`, middle `0.5pt`).
 
+== Disable three-line mode (`three-line-table: false`)
+
+By default `captab` renders a three-line table (manual top/middle/bottom rules, table `stroke: none`). To produce a *standard Typst grid table* (borders on every cell side), set `three-line-table` to `false`:
+
+```typst
+// Per-call
+#captab(
+  caption: [Standard Typst grid],
+  three-line-table: false,
+)[
+  | ID | Name | Value |
+  | -- | ---- | ----- |
+  | 1  | A    | 100   |
+]
+
+// Globally
+#show: captab-style.with(three-line-table: false)
+// or
+#show: cap-style.with(three-line-table: false)
+```
+
+When `three-line-table: false`, `top-rule` / `middle-rule` / `bottom-rule` are inactive; user-defined extra `hlines` / `vlines` still apply. Adjust the default Typst grid stroke globally via `set table(stroke: ...)`.
+
+== Pass-through `tablem` / `table` advanced usage
+
+Apart from captab's own named parameters (`columns` / `cols` / `align` / `size` / `leading` / `inset` / `caption…` / `…-rule` / `breakable` / `repeat-…` / `hlines` / `vlines` / `label`, etc.), *any other named argument* is forwarded as-is to the underlying `table(...)` call, mirroring `tablem`'s advanced-usage surface. Useful pass-throughs:
+
+- `fill: color | function` (cell background; can be `(x, y)` callback)
+- `stroke: stroke | function | dictionary` (per-cell strokes)
+- `gutter` / `column-gutter` / `row-gutter`
+- `rows`
+- any other named parameter that Typst's `table()` accepts
+
+```typst
+#let frame(stroke) = (x, y) => (
+  left: if x > 0 { 0pt } else { stroke },
+  right: stroke,
+  top: if y < 2 { stroke } else { 0pt },
+  bottom: stroke,
+)
+
+#captab(
+  caption: [Monthly reading list],
+  three-line-table: false,                                // full grid instead of three-line
+  columns: (0.4fr, 1fr, 1fr),
+  align: left,
+  fill: (_, y) => if calc.odd(y) { rgb("EAF2F5") },        // alternating row fill
+  stroke: frame(rgb("21222C")),                            // custom stroke
+)[
+  | *Month*  | *Title*               | *Author*            |
+  | -------- | --------------------- | ------------------- |
+  | January  | The Great Gatsby      | F. Scott Fitzgerald |
+  | February | To Kill a Mockingbird | Harper Lee          |
+]
+```
+
+#let frame(stroke) = (x, y) => (
+  left: if x > 0 { 0pt } else { stroke },
+  right: stroke,
+  top: if y < 2 { stroke } else { 0pt },
+  bottom: stroke,
+)
+
+#captab(
+  caption: [Monthly reading list],
+  three-line-table: false,                                // full grid instead of three-line
+  columns: (0.4fr, 1fr, 1fr),
+  align: left,
+  fill: (_, y) => if calc.odd(y) { rgb("EAF2F5") },        // alternating row fill
+  stroke: frame(rgb("21222C")),                            // custom stroke
+)[
+  | *Month*  | *Title*               | *Author*            |
+  | -------- | --------------------- | ------------------- |
+  | January  | The Great Gatsby      | F. Scott Fitzgerald |
+  | February | To Kill a Mockingbird | Harper Lee          |
+]
+
+== Page Break
+
+Starting with 0.1.0 `captab` allows long tables to break across pages by default. Two relevant parameters:
+
+- `breakable` (bool, default `true`) — whether the table may break. Set to `false` to keep the table atomic on one page (it may overflow).
+- `repeat-header` (bool / int, default `true`) — repeat the header row on each continuation page using Typst's native `table.header(repeat: ...)`. `true` repeats on every continuation page; pass a positive integer `n` to repeat only on the first `n` continuation pages; `false` disables repetition.
+- `repeat-caption` (bool, default `false`) — whether to render a "Cont. Table X.Y caption" header on each continuation page (same format as `refer-to` mode). The first page still shows the full original caption.
+
+```typst
+#captab(
+  caption: [Long Data Table],
+  breakable: true,         // allow page break (default)
+  repeat-header: true,     // repeat header rows (default)
+  repeat-caption: true,    // continuation pages show "Cont. Table X.Y"
+)[
+  | ID | Name | Value |
+  | -- | ---- | ----- |
+  // ...
+]
+```
+
+Or configure globally:
+
+```typst
+#show: captab-style.with(
+  breakable: true,
+  repeat-header: true,
+  repeat-caption: true,
+)
+```
+
+#captab(
+  caption: [Long Data Table],
+  breakable: true,         // allow page break (default)
+  repeat-header: true,     // repeat header rows (default)
+  repeat-caption: true,    // continuation pages show "Cont. Table X.Y"
+)[
+  | ID  | Name        | Value |
+  | --- | ----------- | ----- |
+  | 001 | Apple       | 12.50 |
+  | 002 | Banana      | 8.30  |
+  | 003 | Orange      | 15.00 |
+  | 004 | Grape       | 22.80 |
+  | 005 | Watermelon  | 35.60 |
+  | 006 | Mango       | 18.90 |
+  | 007 | Pineapple   | 25.40 |
+  | 008 | Strawberry  | 28.70 |
+  | 009 | Blueberry   | 45.20 |
+  | 010 | Peach       | 16.40 |
+  | 011 | Pear        | 10.80 |
+  | 012 | Cherry      | 52.30 |
+  | 013 | Pomelo      | 19.60 |
+  | 014 | Dragonfruit | 21.50 |
+  | 015 | Kiwi        | 14.30 |
+  | 016 | Cantaloupe  | 32.90 |
+  | 017 | Coconut     | 26.80 |
+  | 018 | Lychee      | 38.40 |
+  | 019 | Longan      | 24.70 |
+  | 020 | Mangosteen  | 48.50 |
+]
+
+*How it works*: `repeat-caption` does not register a new figure on every continuation page. Each continuation cell uses `query(label)` to locate the main table, reads its number from the counter, and delegates to the refer-to branch of `_make_caption_content` to format "Cont. Table X.Y caption …". If no `label` was provided, cap-able auto-synthesises a hidden `__captab_repeat_<n>` label for internal lookup. The caption row and the header row live in two separate `table.header` blocks (with `level: 1/2`), so `repeat-caption: true` can coexist with `repeat-header: false` — the caption repeats while the header does not.
+
+The explicit `refer-to` continuation mechanism (manually-split tables) is still supported and useful when you need to place continuation tables at different positions / chapters.
+
 #pagebreak()
 
 == Table Notes
@@ -443,34 +585,105 @@ Add explanatory notes below tables:
 
 == Continued Tables
 
-For tables spanning multiple pages, use the `refer-to` parameter:
+cap-able supports two continuation styles — pick the one that fits the use case:
+
++ *Auto page-break + repeat caption (recommended, since 0.1.0)* — let `captab` flow naturally across pages and automatically render "Cont. Table X.Y" on the top of every continuation page.
++ *Manual `refer-to` (always available)* — split the table into two or more parts and use `refer-to` on the second part to inherit the number. Useful when you want to insert text/figures/other logic between the original and the continuation.
+
+=== Auto page-break + repeat caption
+
+Pass `repeat-caption: true` to `captab` (`breakable` is `true` by default). cap-able uses Typst's native `table.header(repeat: ...)` to re-emit "Cont. Table X.Y" on the top of every continuation page. The number is anchored to the main table, so no figure is re-registered.
+
+```typst
+#captab(
+  caption: [Long Data Table],
+  repeat-caption: true,         // continuation pages show "Cont. Table X.Y"
+  // breakable: true,           // already the default
+  // repeat-header: true,       // header also repeats by default
+  label: <tab:long-auto>,
+)[
+  | ID | Value |
+  | -- | ----- |
+  | 1  | 100   |
+  | 2  | 200   |
+  | 3  | 300   |
+  // ...
+]
+```
+
+To repeat only the caption but not the markdown header, pass `repeat-header: false`. To let the table flow without any continuation caption (Typst-default behaviour), keep `repeat-caption: false` (the default).
+
+#block(
+  fill: rgb("#ecfeff"),
+  stroke: 0.5pt + rgb("#06b6d4"),
+  radius: 4pt,
+  inset: 8pt,
+)[
+  *When to use*: long data tables, fully-automatic page breaks. One line of `repeat-caption: true` does it — no manual splitting, no caption duplication.
+]
+
+=== Manual `refer-to` (preserved)
+
+When you need to insert explanatory text, footnotes or any other content between the original and the continuation, use `refer-to` to split explicitly:
 
 ```typst
 // First part (original table)
 #captab(
   caption: [Long Data Table],
-  label: <tab:long>,        // Set label for continuation reference
-)[...]
+  label: <tab:long>,        // set label for continuation reference
+)[
+  | ID | Value |
+  | -- | ----- |
+  | 1  | 100   |
+]
 
-// Continuation (header shows "Continued Table X")
+Arbitrary content can go here (notes, smaller table, image, …).
+
+// Continuation (header shows "Cont. Table X")
 #captab(
   caption: [Long Data Table],
-  refer-to: <tab:long>,       // Reference original for numbering
-)[...]
+  refer-to: <tab:long>,       // reference the original for numbering
+  show-caption: true,         // force the caption text on the continuation
+)[
+  | ID | Value |
+  | -- | ----- |
+  | 2  | 200   |
+]
 ```
 
-The continuation automatically:
+#captab(
+  caption: [Long Data Table],
+  label: <tab:long>,
+)[
+  | ID | Value |
+  | -- | ----- |
+  | 1  | 100   |
+]
+
+Arbitrary content can go here (notes, smaller table, image, …).
+
+#captab(
+  caption: [Long Data Table],
+  refer-to: <tab:long>,
+  show-caption: true,
+)[
+  | ID | Value |
+  | -- | ----- |
+  | 2  | 200   |
+]
+
+Either way, the continuation automatically:
 
 - Uses the same number as the original table
-- Adds continuation prefix/suffix
+- Adds the continuation prefix/suffix
 - Does not create a new entry in the table of contents
 
 === Continuation Mode
 
-Control the continuation style via `continued-mode`:
+`continued-mode` controls the format (applies to both styles):
 
-- `"prefix"` (default): Prefix mode, e.g. "Continuation of Table 1"
-- `"suffix"`: Suffix mode, e.g. "Table 1 (continued)"
+- `"prefix"` (default): prefix mode, e.g. "Cont. Table 1"
+- `"suffix"`: suffix mode, e.g. "Table 1 (continued)"
 
 // ============================================================
 // Chapter 5: Figures in Detail
@@ -946,10 +1159,14 @@ This chapter is the authoritative reference listing every public function, every
   [`note-size`],              [`10.5pt`],      [Note size],
   [`note-leading`],           [`6.5pt`],       [Note leading],
   [`note-justify`],           [`true`],        [Justify note],
+  [`caption-position`],       [`auto`],        [Caption position in `#bicap()[body]` mode (applies to both table/figure; `auto` keeps each kind's default)],
+  [`three-line-table`],       [`auto`],        [Three-line table mode (table-only; `auto` leaves state untouched)],
+  [`cell-inset`],             [`auto`],        [Cell padding (table-only; alias of `inset`)],
+  [`inset`],                  [`auto`],        [Alias of `cell-inset`],
   table.hline(stroke: 1.5pt),
 )
 
-*Parameters not exposed by `cap-style`* — table-body (`body-size` / `body-leading` / `cell-inset` / `table-below`) and figure-only fields (`figure-above` / `figure-below` / `subcaption-*` / `gutter` / subfigure `label-*`) — must still be configured via `captab-style` / `capfig-style` directly.
+*Parameters not exposed by `cap-style`* — table-body (`body-size` / `body-leading` / `table-below`) and figure-only fields (`figure-above` / `figure-below` / `subcaption-*` / `gutter` / subfigure `label-*`) — must still be configured via `captab-style` / `capfig-style` directly.
 
 == `captab-style` Complete Parameters
 
@@ -996,7 +1213,8 @@ All parameters of `captab-style` with defaults. `auto` means auto-select based o
   [`enable-english-caption`], [`true`],        [Enable English sub-caption],
   [`body-size`],              [`10.5pt`],      [Body font size],
   [`body-leading`],           [`0.45em`],      [Body line spacing],
-  [`cell-inset`],             [`(x: 5pt, y: 5pt)`], [Cell padding (dict or scalar)],
+  [`cell-inset`],             [`(x: 5pt, y: 5pt)`], [Cell padding (dict or scalar); alias of `inset`, `cell-inset` wins if both passed],
+  [`inset`],                  [`auto`],             [Alias of `cell-inset` (matches captab's `inset` parameter name)],
   [`note-above`],             [`0.5em`],       [Above note],
   [`note-below`],             [`1em`],         [Below note],
   [`note-size`],              [`10.5pt`],      [Note size],
@@ -1006,9 +1224,14 @@ All parameters of `captab-style` with defaults. `auto` means auto-select based o
   [`outline-separator`],      [`" / "`],       [Outline separator],
   [`outline-newline`],        [`false`],       [Newline in outline],
   [`after-indent`],           [`auto`],        [Post-table indent fix],
-  [`top-rule`],               [`1.5pt`],       [Three-line top rule stroke (any stroke value, e.g. `2pt + red`)],
+  [`three-line-table`],       [`true`],        [Three-line table mode (`false` skips the manual rules and uses Typst's default `table()` grid stroke)],
+  [`top-rule`],               [`1.5pt`],       [Three-line top rule stroke (any stroke value, e.g. `2pt + red`; only used when `three-line-table: true`)],
   [`middle-rule`],            [`0.5pt`],       [Three-line middle rule stroke],
   [`bottom-rule`],            [`1.5pt`],       [Three-line bottom rule stroke],
+  [`breakable`],              [`true`],        [Allow the table to break across pages (outer block's `breakable`)],
+  [`repeat-header`],          [`true`],        [Repeat the markdown header row on each continuation page (`true` / `false` / positive int `n`)],
+  [`repeat-caption`],         [`false`],       [Repeat the caption on each continuation page using the refer-to ("Cont. Table X.Y") format],
+  [`caption-position`],       [`top`],         [Position of the caption relative to body in `#bicap()[body]` mode (`top` / `bottom`)],
   table.hline(stroke: 1.5pt),
 )
 
@@ -1112,6 +1335,7 @@ All parameters of `captab-style` with defaults. `auto` means auto-select based o
   [`label-bg-radius`],    [`2pt`],         [Rect radius],
   [`label-bg-inset`],     [`3pt`],         [Background padding],
   [`label-sep`],          [`auto`],        [Subref separator (`auto`: number -> `"."`, letter -> `""`)],
+  [`caption-position`],   [`bottom`],      [Caption position relative to body in `#bicap()[body]` mode (figures default to `bottom`)],
   table.hline(stroke: 1.5pt),
 )
 
@@ -1126,16 +1350,22 @@ All parameters of `captab-style` with defaults. `auto` means auto-select based o
   table.hline(stroke: 0.5pt),
   [`columns`],     [`auto` / `int` / `array`], [Column config (preferred; `auto` or length array, supports `fr`/abs units)],
   [`cols`],        [`auto` / `int` / `array`], [Back-compat alias for `columns` (`columns` wins if both set)],
+  [`align`],       [`auto` / `alignment` / `array` / `function`], [Cell alignment; merged with markdown `:---:` syntax (forwarded to tablem then to `table.align`)],
   [`size`],        [`auto` / `length`],        [Body font size],
   [`leading`],     [`auto` / `length`],        [Body line spacing],
-  [`inset`],       [`auto` / `length` / `dictionary`], [Cell padding (dict `(x:, y:)` or scalar)],
+  [`inset`],       [`auto` / `length` / `dictionary`], [Cell padding (alias of `cell-inset`; `cell-inset` wins if both passed)],
+  [`cell-inset`],  [`auto` / `length` / `dictionary`], [Alias of `inset` (matches the global `captab-style.cell-inset` name)],
   [`caption`],     [`none` / `content`],       [Main language caption],
   [`caption-en`],  [`none` / `content`],       [English caption],
   [`refer-to`],    [`none` / `label`],         [Label ref for continuation],
   [`show-caption`],[`auto` / `bool`],          [Show caption in continuation],
-  [`top-rule`],    [`auto` / `stroke`],        [Top rule stroke (`auto` reads global `top-rule`, default `1.5pt`)],
+  [`three-line-table`], [`auto` / `bool`],     [Three-line mode (`auto` reads global `three-line-table`, default `true`)],
+  [`top-rule`],    [`auto` / `stroke`],        [Top rule stroke (`auto` reads global `top-rule`, default `1.5pt`; only used when `three-line-table: true`)],
   [`middle-rule`], [`auto` / `stroke`],        [Middle rule stroke (`auto` reads global `middle-rule`, default `0.5pt`)],
   [`bottom-rule`], [`auto` / `stroke`],        [Bottom rule stroke (`auto` reads global `bottom-rule`, default `1.5pt`)],
+  [`breakable`],   [`auto` / `bool`],          [Allow page break (`auto` reads global `breakable`, default `true`)],
+  [`repeat-header`],[`auto` / `bool` / `int`], [Repeat header row on continuation pages (`auto` reads global `repeat-header`)],
+  [`repeat-caption`],[`auto` / `bool`],        [Repeat caption on each continuation page (refer-to format)],
   [`hlines`],      [`array` of `dictionary`],  [Extra horizontal rules (see below)],
   [`vlines`],      [`array` of `dictionary`],  [Extra vertical rules (see below)],
   [`label`],       [`none` / `label`],         [Cross-reference label],
@@ -1222,6 +1452,17 @@ All parameters of `captab-style` with defaults. `auto` means auto-select based o
 
 `bicap` is the standalone caption generator; usable independently of `captab`/`capfig` for custom layouts or embedding bilingual captions in plain Typst tables/figures.
 
+Starting from 0.1.0 `bicap` supports *two calling forms*:
+
+- *Caption only*: `#bicap(caption: ..., kind: ...)` — renders the caption alone in its own non-breakable block.
+- *Caption + body*: `#bicap(caption: ..., kind: ...)[body]` — wraps `body` and the caption together in a single non-breakable block, conceptually a cap-able-flavoured `figure(body, caption: ...)`. The `body` may also be passed via the named argument `body: [...]`.
+
+The relative position of caption vs. body is controlled by `caption-position`:
+
+- The default follows the global state — `top` for tables, `bottom` for figures.
+- Override globally via `captab-style` / `capfig-style` with `caption-position: top | bottom`.
+- Override per-call by passing `position: top | bottom` to `bicap`.
+
 #table(
   columns: (1.2fr, 1.2fr, 2.6fr),
   stroke: none,
@@ -1236,11 +1477,16 @@ All parameters of `captab-style` with defaults. `auto` means auto-select based o
   [`kind`],         [`"table"` / `"figure"`], [Kind (selects counter and config source)],
   [`show-caption`], [`auto` / `bool`],      [Show caption in continuation],
   [`config`],       [`auto` / `dictionary`], [`auto` reads the global config matching `kind`; otherwise uses the dict],
+  [`position`],     [`auto` / `top` / `bottom`], [Caption position relative to body (only when body is given; `auto` follows global `caption-position`)],
+  [`breakable`],    [`bool`],               [Whether the outer block may break across pages (default `true`; lets a breakable body flow naturally)],
+  [`repeat-caption`],[`bool`],              [When body breaks across pages, repeat the caption above each native `#table()` in body (default `false`; only when `kind == "table"`)],
+  [`repeat-header`],[`auto` / `bool` / `int`], [Override the `repeat` setting of the markdown header in body's `#table()` (`auto` leaves user's value alone; `true/false/int` overrides; only when `kind == "table"`)],
+  [`body`],         [`none` / `content`],   [Optional body; may also be passed via trailing block `#bicap()[...]`],
   table.hline(stroke: 1.5pt),
 )
 
 ```typst
-// Standalone bilingual caption for a figure
+// Form 1: caption only (same as 0.0.x)
 #align(center)[
   #rect(width: 6cm, height: 3cm, fill: gray.lighten(70%))
   #bicap(
@@ -1250,7 +1496,82 @@ All parameters of `captab-style` with defaults. `auto` means auto-select based o
     label: <fig:custom>,
   )
 ]
+
+// Form 2: bicap wraps the body (kind=table; caption defaults to top)
+#bicap(
+  caption: [Experimental Data],
+  kind: "table",
+  label: <tab:exp>,
+)[
+  #table(
+    columns: 3,
+    [A], [B], [C],
+    [1], [2], [3],
+  )
+]
+
+// kind=figure; caption defaults to bottom — use position: top to flip
+#bicap(
+  caption: [Schematic],
+  kind: "figure",
+  position: top,
+)[
+  #image("foo.png", width: 6cm)
+]
+
+// Long table that should repeat the caption on each continuation page (table-kind only)
+#bicap(
+  caption: [Long Data Table],
+  kind: "table",
+  repeat-caption: true,
+  label: <tab:long>,
+)[
+  #table(
+    columns: 4,
+    table.header([ID], [Name], [Value], [Note]),
+    // ... 50+ rows of data
+  )
+]
+
+// Repeat only the caption on continuation pages — turn off markdown header repetition
+#bicap(
+  caption: [Long Table],
+  kind: "table",
+  repeat-caption: true,
+  repeat-header: false,
+)[
+  #table(
+    columns: 4,
+    table.header([Col1], [Col2], [Col3], [Col4]),
+    // ...
+  )
+]
+
+// Or just disable markdown header repetition on its own, without repeat-caption
+#bicap(
+  caption: [Short Table],
+  kind: "table",
+  repeat-header: false,
+)[ #table(columns: 3, table.header([A], [B], [C]), ...) ]
 ```
+
+#block(
+  fill: rgb("#fff7e6"),
+  stroke: 0.5pt + rgb("#f59e0b"),
+  radius: 4pt,
+  inset: 8pt,
+)[
+  *Convention: keep at most one `#table()` per bicap.* When `repeat-caption: true`,
+  bicap installs a `show table:` rule that injects the SAME caption header into
+  *every* native `#table()` in body. If you stuff multiple tables under one bicap,
+  every table's continuation page will show the same caption — usually not what you
+  want. Use multiple `bicap(...)` calls or manage each table's caption with `captab`.
+
+  Note: bicap detects `captab`'s own nested *level ≥ 2* header structure and skips
+  the injection in that case (so wrapping `captab(repeat-caption: true)` inside bicap
+  won't produce stacked captions). Still, *avoid nesting captab inside a bicap with
+  `repeat-caption`* — the semantics get muddled and numbering can drift.
+]
 
 == `capfig` Complete Parameters
 
@@ -1479,7 +1800,7 @@ utility functions, and the two main configuration functions.
 
 #tidy.show-module(
   tidy.parse-module(
-    read("/cap-able/0.0.2/src/config.typ"),
+    read("/cap-able/0.1.0/src/config.typ"),
     name: "config",
   ),
   show-module-name: false,
@@ -1493,7 +1814,7 @@ supporting both main and continuation (continued table/figure) modes.
 
 #tidy.show-module(
   tidy.parse-module(
-    read("/cap-able/0.0.2/src/bicap.typ"),
+    read("/cap-able/0.1.0/src/bicap.typ"),
     name: "bicap",
   ),
   show-module-name: false,
@@ -1507,7 +1828,7 @@ and its aliases.
 
 #tidy.show-module(
   tidy.parse-module(
-    read("/cap-able/0.0.2/src/table.typ"),
+    read("/cap-able/0.1.0/src/table.typ"),
     name: "table",
   ),
   show-module-name: false,
@@ -1521,7 +1842,7 @@ and multiple width modes.
 
 #tidy.show-module(
   tidy.parse-module(
-    read("/cap-able/0.0.2/src/note.typ"),
+    read("/cap-able/0.1.0/src/note.typ"),
     name: "note",
   ),
   show-module-name: false,
@@ -1535,7 +1856,7 @@ supporting bilingual captions, overlay labels, and subcaptions.
 
 #tidy.show-module(
   tidy.parse-module(
-    read("/cap-able/0.0.2/src/figure.typ"),
+    read("/cap-able/0.1.0/src/figure.typ"),
     name: "figure",
   ),
   show-module-name: false,
@@ -1612,15 +1933,26 @@ See @tab:example for details.
 
 == Why doesn't my continued table show the caption?
 
-By default, continued tables only show the number when `caption` is not provided. To force showing the caption text:
+This applies specifically to *manual `refer-to`* mode: by default, when `caption` is omitted (and `show-caption` is `auto`), the continuation only shows the "Cont. Table X.Y" number. To force the caption text:
 
 ```typst
 #captab(
   refer-to: <tab:original>,
-  caption: [Original Caption],  // Provide caption text
-  show-caption: true,           // Or force it
+  caption: [Original Caption],  // provide caption text
+  show-caption: true,           // or force it
 )[...]
 ```
+
+If you want the continuation caption to appear *automatically* on every continuation page when the table breaks, use the new `repeat-caption` mode (since 0.1.0):
+
+```typst
+#captab(
+  caption: [Original Caption],
+  repeat-caption: true,    // emits "Cont. Table X.Y Caption" on each continuation page
+)[...]
+```
+
+See *Tables in Detail → Continued Tables* for the full comparison.
 
 == How do I fix missing indentation after tables in Chinese?
 
@@ -1646,10 +1978,112 @@ For manual control:
 )
 ```
 
+== Why no `capsubtab` (sub-tables)?
+
+cap-able currently *does not* ship a `capsubtab`. Reasons:
+
+1. *Sub-tables are rare in academic typesetting*. Most style guides do not have a dedicated section on sub-tables; the prevailing practice is to merge comparison data into a *single larger table with an extra "Group" column* rather than splitting into (a)(b) sub-tables. Sub-figures (`capsubfig`) are everywhere in the literature; sub-tables show up in only a small fraction of cases.
+2. *Page-break behaviour is harder*. A side-by-side row of sub-tables is an atomic block — long content overflows rather than flowing across pages; sub-figures (typically images) are short enough that this rarely matters.
+3. *A workable manual recipe already exists*. For two small tables side by side, `grid` + multiple `captab(caption: none)` wrapped in an outer `figure(kind: table, ...)` is enough; the only thing missing is automatic sub-table cross-references like `@tab:sub-a` → "1.2a", and most authors just write "as shown in Table 1.2(a)" inline without a label anyway.
+
+#block(
+  fill: rgb("#fff7e6"),
+  stroke: 0.5pt + rgb("#f59e0b"),
+  radius: 4pt,
+  inset: 8pt,
+)[
+  *Status*: an issue has been opened upstream to track this. *No requests to date.* If you actually need it and the manual `grid` recipe doesn't fit, please +1 the GitHub issue and we'll implement when demand materialises.
+]
+
+Example recipe for side-by-side small tables:
+
+```typst
+#figure(
+  kind: table,
+  supplement: [Table],
+  caption: figure.caption(position: top)[Experimental vs. control group data],
+  grid(
+    columns: 2,
+    column-gutter: 1em,
+    align: top,
+    [
+      *(a) Experimental* \
+      #captab(caption: none)[
+        | ID | Value |
+        | -- | ----- |
+        | 1  | 100   |
+        | 2  | 200   |
+      ]
+    ],
+    [
+      *(b) Control* \
+      #captab(caption: none)[
+        | ID | Value |
+        | -- | ----- |
+        | 1  | 95    |
+        | 2  | 205   |
+      ]
+    ],
+  ),
+)<tab:cmp>
+```
+
+#figure(
+  kind: table,
+  supplement: [Table],
+  caption: figure.caption(position: top)[Experimental vs. control group data],
+  grid(
+    columns: 2,
+    column-gutter: 1em,
+    align: top,
+    [
+      *(a) Experimental* \
+      #captab(caption: none)[
+        | ID | Value |
+        | -- | ----- |
+        | 1  | 100   |
+        | 2  | 200   |
+      ]
+    ],
+    [
+      *(b) Control* \
+      #captab(caption: none)[
+        | ID | Value |
+        | -- | ----- |
+        | 1  | 95    |
+        | 2  | 205   |
+      ]
+    ],
+  ),
+)<tab:cmp>
+
+Reference: `@tab:cmp` resolves to "@tab:cmp". Sub-tables (a)(b) get no automatic labels; just write "as shown in @tab:cmp(a)" inline.
+
 // ============================================================
 // Chapter 11: Changelog
 // ============================================================
 = Changelog
+
+== Version 0.1.0
+
+*New features*:
+
+- `captab` and `captab-style` gain a `breakable` parameter (bool, default `true`) — controls whether the three-line table can break across pages. The outer `block` now follows this flag, so long tables flow naturally instead of being clipped to one page.
+- New `repeat-header` parameter (bool / positive int, default `true`) — repeats the markdown header row on each continuation page using Typst's native `table.header(repeat: ...)`. `true` = repeat on every continuation; `n` = first n continuation pages only; `false` = disable.
+- New `repeat-caption` parameter (bool, default `false`) — adds a "Cont. Table X.Y caption" header on each continuation page (same format as `refer-to` mode; number anchored to the main table). The caption row and markdown header row live in two separate `table.header` blocks (with `level: 1/2`), so `repeat-caption: true` can coexist with `repeat-header: false`. Continuation cells locate the main table via `query(label)` and delegate to the refer-to branch of `_make_caption_content`, so they never re-register a figure or advance the counter; cap-able auto-synthesises a hidden label when the user did not provide one.
+- `bicap` now supports the `#bicap(...)[body]` calling form: wraps caption + body in a single non-breakable block, conceptually a cap-able-flavoured `figure(body, caption: ...)`. `body` can also be passed via the named arg `body: [...]`.
+- `bicap` gains `repeat-caption` (bool, default false): when `kind: "table"`, every native `#table()` in body has its caption repeated on each continuation page (same mechanism as `captab(repeat-caption: true)`). Convention: one table per bicap; multiple tables share the same injected caption.
+- `bicap` gains `repeat-header` (auto/bool/int, default auto): overrides the `repeat` setting of the markdown header inside body's `#table()`. Independent of `repeat-caption`; e.g. `repeat-header: false` to disable header repetition while keeping caption repetition (or alone).
+- `captab` and `captab-style` / `cap-style` gain `three-line-table` (bool, default `true`): set to `false` to drop the three-line style and use Typst's default `table()` grid stroke instead. `top-rule` / `middle-rule` / `bottom-rule` are inactive in that mode; user `hlines` / `vlines` still work.
+- `captab` adds an explicit `align: auto` parameter and a `..extra-args` sink that forwards any other named arguments (`fill` / `stroke` / `gutter` / `column-gutter` / `row-gutter` / `rows`, etc.) straight to the underlying `table(...)`, matching tablem's advanced-usage surface. A user-supplied `stroke` overrides the `stroke: none` we emit in three-line mode (combine with `three-line-table: false` for a clean grid; otherwise the three manual hlines stack on top of your stroke).
+- `cell-inset` and `inset` are now aliases of each other across `captab` / `captab-style` / `cap-style`: previously `captab` only accepted `inset:` while the global config only accepted `cell-inset:`. Both names now work everywhere; if both are passed, `cell-inset` wins (matches the canonical state key).
+- Fix `captab`'s alignment handling: passing an already-2D alignment (e.g. `align: horizon + center`) no longer panics with "cannot add a vertical and a 2D alignment". The logic now only appends `+ horizon` when the alignment's `y` component is missing.
+- New `caption-position` config (`top` / `bottom`) — controls whether the caption is above or below the body in `bicap()[body]` mode. Defaults follow kind: table=top, figure=bottom. Override globally via `captab-style` / `capfig-style` / `cap-style`, or per call via `bicap(position: ...)`.
+- `bicap` gains a `breakable` parameter (bool, default `true`) — whether the outer block may break across pages. The previous design locked caption + body inside `breakable: false` and prevented an inherently breakable body (e.g. a long captab) from flowing across pages; the new default is transparent. Pass `breakable: false` explicitly to restore the old "atomic caption + body" behaviour.
+
+*Compatibility*:
+
+- Default change: `breakable` defaults to `true` from 0.1.0 onward (versus the implicit `false` of 0.0.x). To preserve the old atomic behavior, pass `breakable: false` explicitly or set it globally via `captab-style.with(...)`.
 
 == Version 0.0.2
 

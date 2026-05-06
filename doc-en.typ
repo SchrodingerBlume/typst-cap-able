@@ -155,7 +155,7 @@ The simplest way to create a table uses Markdown-like syntax:
 
 The table automatically gets:
 
-- Full text width
+- Content-sized width (default `width: auto`; switch to fixed length / ratio via the `width` parameter or `set-table-width(...)` — see "Table Width" section)
 - 1.5pt top rule
 - 0.5pt rule below the header
 - 1.5pt bottom rule

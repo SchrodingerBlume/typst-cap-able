@@ -466,10 +466,17 @@
 
             // ── 添加用户自定义额外横线 ─────────────────────────────
             // ── Add user-defined extra horizontal lines ─────────────
+            // 用户的 row 计数基于 *markdown 表格自身*（不含 cap-in-header 注入的 caption 行），
+            // 所以这里要补 cap-row-count；否则在 continued-caption: true 时用户的 row 索引会
+            // 错位（issue #8）。
+            // The user's `row` is indexed against the *markdown table* (excluding the caption
+            // row injected by cap-in-header), so add cap-row-count here. Otherwise, with
+            // `continued-caption: true`, user-supplied `row` indices end up shifted (issue #8).
             for line in hlines {
-              let y = line.at("row", default: 2)         // 默认第2行上方 / default: above row 2
-              let start = line.at("start", default: 0)   // 默认从第0列开始 / default: from col 0
-              let end = line.at("end", default: none)     // 默认到最右列 / default: to rightmost
+              let user-row = line.at("row", default: 2)  // 默认第 2 行上方 / default: above row 2
+              let y = user-row + cap-row-count           // 修正 caption 行偏移
+              let start = line.at("start", default: 0)   // 默认从第 0 列开始 / default: from col 0
+              let end = line.at("end", default: none)    // 默认到最右列 / default: to rightmost
               let stroke-style = line.at("stroke", default: 0.5pt)
               table-content.push(
                 table.hline(y: y, start: start, end: end, stroke: stroke-style)

@@ -841,11 +841,16 @@
             let cap-body = if final-show-subcaption-label {
               // 注意：markup 里 `#a #b` 之间会硬编码一个空格；
               // 这里改用 block 形式手动控制分隔符。
-              // Note: markup `#a #b` hard-codes a space between them;
-              // use block form to control the separator explicitly.
+              // 用 handle-spacing 把 length / relative 包成 h(...)，content 类型直通——
+              // 避免用户传 `subcaption-number-title-spacing: 0.3em`（length）时
+              // "cannot join string with length" 错（issue #9）。
+              // Note: markup `#a #b` hard-codes a space between them; use block form to
+              // control the separator explicitly. handle-spacing wraps lengths into h(...)
+              // and passes content through, avoiding "cannot join string with length"
+              // when users supply a length (issue #9).
               {
                 _make-label-text(idx, final-label-style-subcap, remove-decorations: false)
-                final-subcap-num-sep
+                handle-spacing(final-subcap-num-sep)
                 subfig.subcaption
               }
             } else {

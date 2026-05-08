@@ -653,6 +653,12 @@
   label-bg-radius: 2pt,
   label-bg-inset: 3pt,
   label-sep: auto,
+  // 子图交叉引用的字母样式："letter"（默认，仅字母如 "1a"）/ "full"（带 label-style
+  // 装饰，如 "1(a)" / "1图a"）。控制 @subfig 渲染时是否保留 label-style 的前后缀。
+  // Subfig cross-reference letter style: "letter" (default, just the letter, e.g. "1a") /
+  // "full" (with label-style decorations, e.g. "1(a)"). Controls whether the prefix/suffix
+  // of label-style is kept when rendering @subfig.
+  subref-style: "letter",
   // bicap 包内容时的题注位置（图片默认 bottom）/ Caption position for figures
   caption-position: bottom,
   // 题注水平对齐（含义同 captab）/ Caption horizontal alignment (same semantics as captab)
@@ -1117,6 +1123,9 @@
   label-bg-radius: auto,
   label-bg-inset: auto,
   label-sep: auto,
+  // 子图交叉引用字母样式："letter" / "full"
+  // Subfig cross-ref letter style: "letter" / "full"
+  subref-style: auto,
   note-above: auto,
   note-below: auto,
   note-size: auto,
@@ -1185,6 +1194,7 @@
     if label-bg-radius != auto { new.insert("label-bg-radius", label-bg-radius) }
     if label-bg-inset != auto { new.insert("label-bg-inset", label-bg-inset) }
     if label-sep != auto { new.insert("label-sep", label-sep) }
+    if subref-style != auto { new.insert("subref-style", subref-style) }
     if note-above != auto { new.insert("note-above", note-above) }
     if note-below != auto { new.insert("note-below", note-below) }
     if note-size != auto { new.insert("note-size", note-size) }

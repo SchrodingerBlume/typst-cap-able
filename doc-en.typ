@@ -873,6 +873,26 @@ Live demonstration:
 
 See @fig:sub-a and @fig:sub-b (overall @fig:subref-main).
 
+=== `subref-style`: keep `label-style` decorations in `@ref`
+
+By default `subref-style: "letter"` — `@fig:sub-a` renders as `Fig. 1a` (just the letter).
+
+Set `"full"` to *also keep the `label-style` decorations in cross-references*:
+
+```typst
+#capsubfig(
+  ...
+  label-style: "(a)",
+  subref-style: "full",        // ← keep the parentheses in @ref
+)
+```
+
+Renders: `@fig:sub-a` → `Fig. 1(a)`, matching the subcaption prefix.
+
+Works with Chinese-style prefixes (`label-style: "图a"` + `"full"` → `图 1图a`), brackets (`"[A]"` → `Fig. 1[A]`), etc. In `"full"` mode, `label-sep` defaults to empty string since the decorations already separate visually; override `label-sep` explicitly if you want a different separator.
+
+Configurable globally via `capfig-style(subref-style: "full")` or per-call on `capsubfig`.
+
 // ============================================================
 // Chapter 6: Configuration
 // ============================================================
@@ -1596,7 +1616,8 @@ All parameters of `captab-style` with defaults. `auto` means auto-select based o
   [`label-bg-shape`],     [`"rect"`],      [Background shape],
   [`label-bg-radius`],    [`2pt`],         [Rect radius],
   [`label-bg-inset`],     [`3pt`],         [Background padding],
-  [`label-sep`],          [`auto`],        [Subref separator (`auto`: number -> `"."`, letter -> `""`)],
+  [`label-sep`],          [`auto`],        [Subref separator (`auto`: number -> `"."`, letter -> `""`; defaults to `""` in `subref-style: "full"` mode)],
+  [`subref-style`],       [`"letter"`],    [Subref letter style: `"letter"` (just the letter, e.g. `Fig. 1a`) / `"full"` (with label-style decorations, e.g. `Fig. 1(a)`)],
   [`caption-position`],   [`bottom`],      [Caption position relative to body in `#bicap()[body]` mode (figures default to `bottom`)],
   [`caption-align`],      [`"center"`],    [Caption horizontal alignment: `"center"` / `"left"` / `"right"` / `"text-left"` / `"text-right"`; or dict `(main, continued)`],
   [`placement`],          [`none`],        [Floating placement: `none` / `top` / `bottom` / `auto`],
@@ -2018,7 +2039,7 @@ All params besides `subfigs` accept `auto` (inherit global `capfig-style`):
 
 - `columns` (`auto` / `int`): Columns per row; `auto` = single row.
 - `caption` / `caption-en` / `label` / `refer-to` / `show-caption`: Same as `capfig`.
-- `gutter`, `subcaption-pos`, `show-subcaption`, `show-subcaption-label`, `align`, `label-mode`, `label-style`, `label-font`, `label-size`, `label-offset`, `label-text-color`, `label-stroke`, `label-bg`, `label-bg-shape`, `label-bg-radius`, `label-bg-inset`, `label-sep`: Override the subfigure defaults from `capfig-style`.
+- `gutter`, `subcaption-pos`, `show-subcaption`, `show-subcaption-label`, `align`, `label-mode`, `label-style`, `label-font`, `label-size`, `label-offset`, `label-text-color`, `label-stroke`, `label-bg`, `label-bg-shape`, `label-bg-radius`, `label-bg-inset`, `label-sep`, `subref-style`: Override the subfigure defaults from `capfig-style`.
   - `label-style` accepts `str` (overlay/subcaption share the style) or `(overlay: ..., subcaption: ...)` dict for per-side control. Missing keys fall back to the package default `"(a)"`.
 - `figure-above`, `figure-below`, `caption-above`, `subcaption-above`, `subcaption-below`: Spacing overrides.
 - `subcaption-number-title-spacing` (`auto` / `content` / `length`): separator between subcaption number and body; `auto` inherits the main caption's `number-title-spacing`.

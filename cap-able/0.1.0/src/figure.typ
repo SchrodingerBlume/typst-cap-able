@@ -544,6 +544,9 @@
   label-bg-radius: auto,
   label-bg-inset: auto,
   label-sep: auto,
+  // 子图交叉引用字母样式："letter"（仅字母）/ "full"（带 label-style 装饰）
+  // Subfig cross-ref letter style: "letter" / "full"
+  subref-style: auto,
   figure-above: auto,
   figure-below: auto,
   caption-above: auto,
@@ -584,6 +587,13 @@
     let final-label-bg-radius = if label-bg-radius != auto { label-bg-radius } else { config.label-bg-radius }
     let final-label-bg-inset = if label-bg-inset != auto { label-bg-inset } else { config.label-bg-inset }
     let final-label-sep = if label-sep != auto { label-sep } else { config.label-sep }
+    // 子图引用字母样式：per-call > 全局 state > "letter"
+    // Subref letter style: per-call > global state > "letter"
+    let final-subref-style = if subref-style != auto {
+      subref-style
+    } else {
+      config.at("subref-style", default: "letter")
+    }
 
     let final-subcaption-above = if subcaption-above != auto { subcaption-above } else { config.subcaption-above }
     let final-subcaption-below = if subcaption-below != auto { subcaption-below } else { config.subcaption-below }
@@ -761,17 +771,29 @@
             final-label-style-subcap
           }
 
-          // 获取此子图的标签字母（不含修饰，如 "(a)" → "a"）
-          // Get the label letter without decorations (e.g., "(a)" → "a")
-          let sublabel = _make-label-text(idx, subfig-ref-style, remove-decorations: true)
+          // 获取此子图的标签：subref-style: "letter" 时只取字母（如 "(a)" → "a"），
+          // "full" 时保留 label-style 装饰（如 "(a)" → "(a)"），用户用来匹配 subcaption
+          // 前缀样式（issue #10）。
+          // Sublabel: "letter" mode strips decorations ("(a)" → "a"); "full" keeps them
+          // ("(a)" → "(a)") so @ref matches the subcaption prefix style (issue #10).
+          let strip-decorations = final-subref-style != "full"
+          let sublabel = _make-label-text(idx, subfig-ref-style, remove-decorations: strip-decorations)
 
-          // sep 也跟随 ref-style：数字格式用 "."，字母格式用 ""。
+          // sep 跟随 ref-style：
+          //   - "letter" 模式：数字格式用 "."（"1.1"），字母格式用 ""（"1a"）
+          //   - "full" 模式：装饰已自带视觉分隔（如 "1(a)" / "1(1)"），sep 默认空字符串
           // 全局 label-sep 已显式设置时仍优先。
-          // sep follows ref-style too: "." for numeric, "" for alpha.
+          // sep follows ref-style:
+          //   - "letter" mode: "." for numeric ("1.1"), "" for alpha ("1a")
+          //   - "full" mode: decorations already separate visually, default sep is ""
           // Explicit global label-sep still takes priority.
           let subfig-sep = if final-label-sep == auto {
-            let parsed = _parse-label-style(subfig-ref-style)
-            if parsed.format == "1" { "." } else { "" }
+            if final-subref-style == "full" {
+              ""
+            } else {
+              let parsed = _parse-label-style(subfig-ref-style)
+              if parsed.format == "1" { "." } else { "" }
+            }
           } else {
             final-label-sep
           }

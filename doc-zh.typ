@@ -908,6 +908,26 @@ subcaption 前缀编号（如 `"(a)"`）和正文之间的间距由 `subcaption-
 
 详见@fig:sub-a 和@fig:sub-b (整体见@fig:subref-main)。
 
+=== `subref-style`：让 `@ref` 跟随 `label-style` 装饰
+
+默认 `subref-style: "letter"`——`@fig:sub-a` 渲染成 `图 1a`（仅字母）。
+
+设为 `"full"` 后，*交叉引用同样保留 `label-style` 的前后缀装饰*：
+
+```typst
+#capsubfig(
+  ...
+  label-style: "(a)",
+  subref-style: "full",        // ← 让 @ref 也带括号
+)
+```
+
+渲染：`@fig:sub-a` → `图 1(a)`，与 subcaption 前缀样式视觉一致。
+
+也支持中文前缀（`label-style: "图a"` + `"full"` → `图 1图a`）、方括号（`"[A]"` → `图 1[A]`）等。`label-sep` 在 `"full"` 模式下默认空字符串，因为装饰本身已提供视觉分隔；如果需要不同分隔符可显式覆盖。
+
+可在 `capfig-style(subref-style: "full")` 全局，或 `capsubfig(subref-style: ...)` per-call 设置。
+
 // ============================================================
 // 第六章：配置详解
 // ============================================================
@@ -1643,7 +1663,8 @@ caption-text: (
   [`label-bg-shape`], [`"rect"`], [背景形状 `"rect"` / `"circle"`],
   [`label-bg-radius`], [`2pt`], [矩形圆角],
   [`label-bg-inset`], [`3pt`], [背景内边距],
-  [`label-sep`], [`auto`], [子图引用分隔符（`auto`：数字 → `"."`，字母 → `""`）],
+  [`label-sep`], [`auto`], [子图引用分隔符（`auto`：数字 → `"."`，字母 → `""`；`subref-style: "full"` 模式下默认 `""`）],
+  [`subref-style`], [`"letter"`], [子图交叉引用字母样式：`"letter"`（仅字母，如 `图 1a`）/ `"full"`（带 label-style 装饰，如 `图 1(a)`）],
   [`caption-position`], [`bottom`], [#raw("#bicap()[body]") 模式下题注相对 body 的位置（图片默认 `bottom`）],
   [`caption-align`], [`"center"`], [题注水平对齐：`"center"` / `"left"` / `"right"` / `"text-left"` / `"text-right"`；或 dict `(main, continued)`],
   [`placement`], [`none`], [浮动定位：`none` / `top` / `bottom` / `auto`],
@@ -2060,7 +2081,7 @@ caption-text: (
 
 - `columns`（`auto` / `int`）：每行列数；`auto` 表示所有子图在一行。
 - `caption` / `caption-en` / `label` / `refer-to` / `show-caption`：与 `capfig` 同义。
-- `gutter`、`subcaption-pos`、`show-subcaption`、`show-subcaption-label`、`align`、`label-mode`、`label-style`、`label-font`、`label-size`、`label-offset`、`label-text-color`、`label-stroke`、`label-bg`、`label-bg-shape`、`label-bg-radius`、`label-bg-inset`、`label-sep`：覆盖 `capfig-style` 的同名子图默认值。
+- `gutter`、`subcaption-pos`、`show-subcaption`、`show-subcaption-label`、`align`、`label-mode`、`label-style`、`label-font`、`label-size`、`label-offset`、`label-text-color`、`label-stroke`、`label-bg`、`label-bg-shape`、`label-bg-radius`、`label-bg-inset`、`label-sep`、`subref-style`：覆盖 `capfig-style` 的同名子图默认值。
   - `label-style` 接受 `str`（overlay/subcaption 共用）或 `(overlay: ..., subcaption: ...)` 字典分别指定。缺失键回退包默认 `"(a)"`。
 - `figure-above`、`figure-below`、`caption-above`、`subcaption-above`、`subcaption-below`：间距覆盖。
 - `subcaption-number-title-spacing`（`auto` / `content` / `length`）：子标题"编号-正文"分隔符。`auto` 继承大题注的 `number-title-spacing`（默认配置里那个分隔符）。

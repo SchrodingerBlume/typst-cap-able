@@ -102,6 +102,7 @@
   top-rule: auto,
   middle-rule: auto,
   bottom-rule: auto,
+  extra-rule: auto,             // 额外横/竖线默认 stroke；接受单值或 dict (h:, v:)
   breakable: auto,
   repeat-header: auto,
   continued-caption: auto,
@@ -146,6 +147,24 @@
     let final-top-rule = if top-rule != auto { top-rule } else { config.at("top-rule", default: 1.5pt) }
     let final-middle-rule = if middle-rule != auto { middle-rule } else { config.at("middle-rule", default: 0.5pt) }
     let final-bottom-rule = if bottom-rule != auto { bottom-rule } else { config.at("bottom-rule", default: 1.5pt) }
+
+    // 额外线条默认 stroke：per-call > state > 0.5pt。
+    // 接受单值（h、v 共用）或 dict (h: ..., v: ...) 分别指定。
+    // 缺失键回退到包默认 0.5pt（不做沿用-另一边的 fallback，保持各侧独立可控）。
+    // Default stroke for extra rules: per-call > state > 0.5pt. Accepts a single value
+    // (shared by h & v) or a (h:, v:) dict for per-axis control. Missing dict keys fall
+    // back to the package default 0.5pt (not the other axis, keeping sides independent).
+    let raw-extra-rule = if extra-rule != auto { extra-rule } else { config.at("extra-rule", default: 0.5pt) }
+    let final-extra-h-rule = if type(raw-extra-rule) == dictionary {
+      raw-extra-rule.at("h", default: 0.5pt)
+    } else {
+      raw-extra-rule
+    }
+    let final-extra-v-rule = if type(raw-extra-rule) == dictionary {
+      raw-extra-rule.at("v", default: 0.5pt)
+    } else {
+      raw-extra-rule
+    }
     let final-breakable = if breakable != auto { breakable } else { config.at("breakable", default: true) }
     let final-repeat-header = if repeat-header != auto { repeat-header } else { config.at("repeat-header", default: true) }
     let final-continued-caption = if continued-caption != auto { continued-caption } else { config.at("continued-caption", default: false) }
@@ -477,7 +496,9 @@
               let y = user-row + cap-row-count           // 修正 caption 行偏移
               let start = line.at("start", default: 0)   // 默认从第 0 列开始 / default: from col 0
               let end = line.at("end", default: none)    // 默认到最右列 / default: to rightmost
-              let stroke-style = line.at("stroke", default: 0.5pt)
+              // 缺省 stroke 走全局 final-extra-h-rule（per-line stroke 覆盖）
+              // Per-line stroke wins; otherwise inherit global final-extra-h-rule.
+              let stroke-style = line.at("stroke", default: final-extra-h-rule)
               table-content.push(
                 table.hline(y: y, start: start, end: end, stroke: stroke-style)
               )
@@ -489,7 +510,9 @@
               let x = line.at("col", default: 1)         // 默认第1列右侧 / default: right of col 1
               let start = line.at("start", default: 0)
               let end = line.at("end", default: none)
-              let stroke-style = line.at("stroke", default: 0.5pt)
+              // 缺省 stroke 走全局 final-extra-v-rule（per-line stroke 覆盖）
+              // Per-line stroke wins; otherwise inherit global final-extra-v-rule.
+              let stroke-style = line.at("stroke", default: final-extra-v-rule)
               table-content.push(
                 table.vline(x: x, start: start, end: end, stroke: stroke-style)
               )

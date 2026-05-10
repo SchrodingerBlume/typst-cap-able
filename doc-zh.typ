@@ -379,6 +379,40 @@
   | 7 | 8 | 9 |
 ]
 
+=== 全局默认 stroke `extra-rule`
+
+如果整张表（或全文档）所有额外线都用同样的 stroke，与其每条都写一次，不如设全局默认：
+
+```typst
+#show: captab-style.with(extra-rule: 0.5pt + red)
+
+#captab(
+  hlines: ((row: 2,), (row: 3,)),     // 都跟随 0.5pt + red，无需重复
+)[ ... ]
+```
+
+`extra-rule` 接受 *单值*（h、v 共用）或 *dict 形式*分别指定横/竖线：
+
+```typst
+#show: captab-style.with(
+  extra-rule: (h: 1pt + blue, v: 0.3pt + gray),
+)
+```
+
+per-line `stroke` 仍然能 *单独覆盖*（覆盖 > 全局）：
+
+```typst
+#captab(
+  extra-rule: 0.5pt + green,
+  hlines: (
+    (row: 2,),                        // 0.5pt + green ← 跟随
+    (row: 5, stroke: 1.5pt + orange), // 1.5pt + orange ← 覆盖
+  ),
+)
+```
+
+可在 `cap-style`/`captab-style` 全局或 `captab(extra-rule: ...)` per-call 设置。默认 `0.5pt` 与旧版一致。
+
 == 三线粗细
 
 可通过 `top-rule` / `middle-rule` / `bottom-rule` 自定义三线表的顶/中/底线。它们接受任何 Typst stroke 值——粗细、颜色、虚线都行：
@@ -1554,6 +1588,7 @@ caption-text: (
   [`top-rule`], [`1.5pt`], [三线表顶线 stroke（接受任何 stroke 值，如 `2pt + red`；仅 `three-line-table: true` 时生效）],
   [`middle-rule`], [`0.5pt`], [三线表中线 stroke],
   [`bottom-rule`], [`1.5pt`], [三线表底线 stroke],
+  [`extra-rule`], [`0.5pt`], [`hlines` / `vlines` 中未单独指定 `stroke` 时的默认 stroke；接受单值或 dict `(h: ..., v: ...)` 拆分横/竖线],
   [`breakable`], [`true`], [表格能否跨页（外层 block 的 `breakable`）],
   [`repeat-header`], [`true`], [跨页时是否重复 markdown 表头行（`true` / `false` / 正整数 `n`）],
   [`continued-caption`], [`false`], [跨页时是否在每个续页顶部重复题注（"续表 X.Y"格式，复用 refer-to 渲染）],
@@ -1699,6 +1734,7 @@ caption-text: (
   [`top-rule`], [`auto` / `stroke`], [顶线 stroke（`auto` 取全局 `top-rule`，默认 `1.5pt`；仅 `three-line-table: true` 时生效）],
   [`middle-rule`], [`auto` / `stroke`], [中线 stroke（`auto` 取全局 `middle-rule`，默认 `0.5pt`）],
   [`bottom-rule`], [`auto` / `stroke`], [底线 stroke（`auto` 取全局 `bottom-rule`，默认 `1.5pt`）],
+  [`extra-rule`], [`auto` / `stroke` / `dict`], [`hlines` / `vlines` 缺省 stroke 时的默认值；接单值或 dict `(h: ..., v: ...)` 分别指定横/竖线（缺失键回退包默认 `0.5pt`）；per-line `stroke` 仍可单独覆盖],
   [`breakable`], [`auto` / `bool`], [是否允许跨页（`auto` 取全局 `breakable`，默认 `true`）],
   [`repeat-header`], [`auto` / `bool` / `int`], [跨页时是否重复表头行（`auto` 取全局 `repeat-header`）],
   [`continued-caption`], [`auto` / `bool`], [跨页时是否在每个续页顶部重复题注（"续表 X.Y"格式）],

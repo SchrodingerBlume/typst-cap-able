@@ -562,6 +562,13 @@
   top-rule: 1.5pt,
   middle-rule: 0.5pt,
   bottom-rule: 1.5pt,
+  // 用户自定义额外横/竖线（hlines / vlines 数组里没传 stroke 时）的默认 stroke。
+  // 接受单值（h、v 共用）或 dict (h: ..., v: ...) 拆分。每条线可通过自身的 stroke
+  // 字段覆盖此默认。
+  // Default stroke for user-defined extra lines (when an entry in hlines/vlines omits
+  // its stroke). Accepts a single value (shared by h & v) or a dict (h: ..., v: ...).
+  // Per-line `stroke` field still overrides this default.
+  extra-rule: 0.5pt,
   // 跨页控制 / Page-break control
   breakable: true,            // 表格是否允许跨页 / Whether table may break across pages
   repeat-header: true,        // 跨页时是否重复表头行 / Repeat header row on each page
@@ -905,6 +912,10 @@
   top-rule: auto,
   middle-rule: auto,
   bottom-rule: auto,
+  // 用户自定义额外横/竖线（hlines/vlines 数组缺省 stroke 时）的默认 stroke。
+  // 接受单值或 dict (h: ..., v: ...) 分开指定。
+  // Default stroke for extra hlines/vlines; accepts a single value or (h:, v:) dict.
+  extra-rule: auto,
   // 跨页控制 / Page-break control
   breakable: auto,            // bool：表格能否跨页 / Whether the table may break across pages
   repeat-header: auto,        // bool | int：跨页时重复表头行的页数（true=全部，int=前 n 页）/ Repeat header (true / n)
@@ -968,6 +979,7 @@
     if top-rule != auto { new.insert("top-rule", top-rule) }
     if middle-rule != auto { new.insert("middle-rule", middle-rule) }
     if bottom-rule != auto { new.insert("bottom-rule", bottom-rule) }
+    if extra-rule != auto { new.insert("extra-rule", extra-rule) }
     if breakable != auto { new.insert("breakable", breakable) }
     if repeat-header != auto { new.insert("repeat-header", repeat-header) }
     if continued-caption != auto { new.insert("continued-caption", continued-caption) }

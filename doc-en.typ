@@ -373,6 +373,40 @@ Add extra horizontal or vertical lines for complex layouts:
   | 7 | 8 | 9 |
 ]
 
+=== Global default stroke `extra-rule`
+
+When every extra line in a table (or document) shares the same stroke, set a global default rather than repeating it per line:
+
+```typst
+#show: captab-style.with(extra-rule: 0.5pt + red)
+
+#captab(
+  hlines: ((row: 2,), (row: 3,)),     // both inherit 0.5pt + red, no repetition
+)[ ... ]
+```
+
+`extra-rule` accepts a *single value* (shared by hlines & vlines) or a *dict form* for per-axis control:
+
+```typst
+#show: captab-style.with(
+  extra-rule: (h: 1pt + blue, v: 0.3pt + gray),
+)
+```
+
+Per-line `stroke` still wins:
+
+```typst
+#captab(
+  extra-rule: 0.5pt + green,
+  hlines: (
+    (row: 2,),                        // 0.5pt + green ← inherits
+    (row: 5, stroke: 1.5pt + orange), // 1.5pt + orange ← overrides
+  ),
+)
+```
+
+Configurable globally on `cap-style` / `captab-style`, or per-call via `captab(extra-rule: ...)`. Default `0.5pt` matches the previous hard-coded behaviour.
+
 == Three-Line Strokes
 
 Customize the top, middle and bottom rules of the three-line table via `top-rule` / `middle-rule` / `bottom-rule`. Any Typst stroke value works — thickness, color, dashed:
@@ -1506,6 +1540,7 @@ All parameters of `captab-style` with defaults. `auto` means auto-select based o
   [`top-rule`],               [`1.5pt`],       [Three-line top rule stroke (any stroke value, e.g. `2pt + red`; only used when `three-line-table: true`)],
   [`middle-rule`],            [`0.5pt`],       [Three-line middle rule stroke],
   [`bottom-rule`],            [`1.5pt`],       [Three-line bottom rule stroke],
+  [`extra-rule`],             [`0.5pt`],       [Default stroke for `hlines` / `vlines` entries that omit `stroke`; accepts a single value or `(h: ..., v: ...)` dict for per-axis control],
   [`breakable`],              [`true`],        [Allow the table to break across pages (outer block's `breakable`)],
   [`repeat-header`],          [`true`],        [Repeat the markdown header row on each continuation page (`true` / `false` / positive int `n`)],
   [`continued-caption`],         [`false`],       [Repeat the caption on each continuation page using the refer-to ("Cont. Table X.Y") format],
@@ -1652,6 +1687,7 @@ All parameters of `captab-style` with defaults. `auto` means auto-select based o
   [`top-rule`],    [`auto` / `stroke`],        [Top rule stroke (`auto` reads global `top-rule`, default `1.5pt`; only used when `three-line-table: true`)],
   [`middle-rule`], [`auto` / `stroke`],        [Middle rule stroke (`auto` reads global `middle-rule`, default `0.5pt`)],
   [`bottom-rule`], [`auto` / `stroke`],        [Bottom rule stroke (`auto` reads global `bottom-rule`, default `1.5pt`)],
+  [`extra-rule`], [`auto` / `stroke` / `dict`], [Default stroke for `hlines` / `vlines` (when entries omit `stroke`); single value or `(h: ..., v: ...)` dict for per-axis (missing keys fall back to `0.5pt`); per-line `stroke` still wins],
   [`breakable`],   [`auto` / `bool`],          [Allow page break (`auto` reads global `breakable`, default `true`)],
   [`repeat-header`],[`auto` / `bool` / `int`], [Repeat header row on continuation pages (`auto` reads global `repeat-header`)],
   [`continued-caption`],[`auto` / `bool`],        [Repeat caption on each continuation page (refer-to format)],

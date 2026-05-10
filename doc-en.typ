@@ -351,14 +351,21 @@ The `columns` parameter accepts an array of lengths, for example:
 
 == Additional Lines
 
-Add extra horizontal or vertical lines for complex layouts:
+Add extra horizontal or vertical lines for complex layouts. Each entry in `hlines` / `vlines` may be an *`int` shorthand* (just the row/col index, all other fields default) or a *full dict*:
 
 ```typst
+// Shorthand: plain int list
+#captab(hlines: (2, 3), vlines: (1, 2), caption: [...])[ ... ]
+
+// Full dict (customise stroke / start / end)
 #captab(
   hlines: ((row: 3, stroke: 1pt),),   // Add 1pt horizontal line after row 3
   vlines: ((col: 1, start: 1),),      // Add vertical line at column 1 (from row 1)
   caption: [Table with Extra Lines],
 )[...]
+
+// Mixed
+#captab(hlines: (2, (row: 5, stroke: 1.5pt + red), 7), ...)[ ... ]
 ```
 
 #captab(
@@ -1691,8 +1698,8 @@ All parameters of `captab-style` with defaults. `auto` means auto-select based o
   [`breakable`],   [`auto` / `bool`],          [Allow page break (`auto` reads global `breakable`, default `true`)],
   [`repeat-header`],[`auto` / `bool` / `int`], [Repeat header row on continuation pages (`auto` reads global `repeat-header`)],
   [`continued-caption`],[`auto` / `bool`],        [Repeat caption on each continuation page (refer-to format)],
-  [`hlines`],      [`array` of `dictionary`],  [Extra horizontal rules (see below)],
-  [`vlines`],      [`array` of `dictionary`],  [Extra vertical rules (see below)],
+  [`hlines`],      [`array` of `int` / `dictionary`],  [Extra horizontal rules; entries may be `int` (shorthand for `(row: N)`) or full dicts],
+  [`vlines`],      [`array` of `int` / `dictionary`],  [Extra vertical rules; entries may be `int` (shorthand for `(col: N)`) or full dicts],
   [`label`],       [`none` / `label`],         [Cross-reference label],
   [`content`],     [`content` (positional)],   [Markdown-style body],
   table.hline(stroke: 1.5pt),

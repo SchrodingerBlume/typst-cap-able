@@ -492,13 +492,16 @@
             // row injected by cap-in-header), so add cap-row-count here. Otherwise, with
             // `continued-caption: true`, user-supplied `row` indices end up shifted (issue #8).
             for line in hlines {
-              let user-row = line.at("row", default: 2)  // 默认第 2 行上方 / default: above row 2
+              // 简写：int → 视为 (row: int)；其它项必须是 dict
+              // Shorthand: int → treated as (row: int); otherwise must be a dict
+              let entry = if type(line) == int { (row: line) } else { line }
+              let user-row = entry.at("row", default: 2) // 默认第 2 行上方 / default: above row 2
               let y = user-row + cap-row-count           // 修正 caption 行偏移
-              let start = line.at("start", default: 0)   // 默认从第 0 列开始 / default: from col 0
-              let end = line.at("end", default: none)    // 默认到最右列 / default: to rightmost
+              let start = entry.at("start", default: 0)  // 默认从第 0 列开始 / default: from col 0
+              let end = entry.at("end", default: none)   // 默认到最右列 / default: to rightmost
               // 缺省 stroke 走全局 final-extra-h-rule（per-line stroke 覆盖）
               // Per-line stroke wins; otherwise inherit global final-extra-h-rule.
-              let stroke-style = line.at("stroke", default: final-extra-h-rule)
+              let stroke-style = entry.at("stroke", default: final-extra-h-rule)
               table-content.push(
                 table.hline(y: y, start: start, end: end, stroke: stroke-style)
               )
@@ -507,12 +510,15 @@
             // ── 添加用户自定义额外竖线 ─────────────────────────────
             // ── Add user-defined extra vertical lines ───────────────
             for line in vlines {
-              let x = line.at("col", default: 1)         // 默认第1列右侧 / default: right of col 1
-              let start = line.at("start", default: 0)
-              let end = line.at("end", default: none)
+              // 简写：int → 视为 (col: int)；其它项必须是 dict
+              // Shorthand: int → treated as (col: int); otherwise must be a dict
+              let entry = if type(line) == int { (col: line) } else { line }
+              let x = entry.at("col", default: 1)        // 默认第1列右侧 / default: right of col 1
+              let start = entry.at("start", default: 0)
+              let end = entry.at("end", default: none)
               // 缺省 stroke 走全局 final-extra-v-rule（per-line stroke 覆盖）
               // Per-line stroke wins; otherwise inherit global final-extra-v-rule.
-              let stroke-style = line.at("stroke", default: final-extra-v-rule)
+              let stroke-style = entry.at("stroke", default: final-extra-v-rule)
               table-content.push(
                 table.vline(x: x, start: start, end: end, stroke: stroke-style)
               )

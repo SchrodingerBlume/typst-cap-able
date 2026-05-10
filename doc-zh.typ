@@ -357,14 +357,21 @@
 
 == 额外线条
 
-对于复杂表格，可添加额外的横线或竖线：
+对于复杂表格，可添加额外的横线或竖线。`hlines` / `vlines` 数组的每一项可以是 *`int` 简写*（只指定行/列号，其它走默认）或*完整 dict*：
 
 ```typst
+// 简写：纯 int 列表
+#captab(hlines: (2, 3), vlines: (1, 2), caption: [...])[ ... ]
+
+// 完整 dict（自定义 stroke / start / end）
 #captab(
   hlines: ((row: 3, stroke: 1pt),),   // 在第3行后添加 1 磅横线
   vlines: ((col: 1, start: 1),),      // 在第1列右侧添加竖线（从第1行起）
   caption: [含额外线条的表格],
 )[...]
+
+// 混合
+#captab(hlines: (2, (row: 5, stroke: 1.5pt + red), 7), ...)[ ... ]
 ```
 
 #captab(
@@ -1738,8 +1745,8 @@ caption-text: (
   [`breakable`], [`auto` / `bool`], [是否允许跨页（`auto` 取全局 `breakable`，默认 `true`）],
   [`repeat-header`], [`auto` / `bool` / `int`], [跨页时是否重复表头行（`auto` 取全局 `repeat-header`）],
   [`continued-caption`], [`auto` / `bool`], [跨页时是否在每个续页顶部重复题注（"续表 X.Y"格式）],
-  [`hlines`], [`array` of `dictionary`], [额外横线数组],
-  [`vlines`], [`array` of `dictionary`], [额外竖线数组],
+  [`hlines`], [`array` of `int` / `dictionary`], [额外横线数组；元素可为 `int`（简写，等价 `(row: N)`）或完整 dict],
+  [`vlines`], [`array` of `int` / `dictionary`], [额外竖线数组；元素可为 `int`（简写，等价 `(col: N)`）或完整 dict],
   [`label`], [`none` / `label`], [本表标签],
   [`content`], [`content`（位置参数）], [Markdown 风格表格体],
   table.hline(stroke: 1.5pt),

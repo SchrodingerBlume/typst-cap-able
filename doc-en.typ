@@ -13,7 +13,7 @@
 
 #import "@preview/tidy:0.4.3"
 #import "@preview/mantys:1.0.2": *
-#import "cap-able/0.1.0/lib.typ": *
+#import "cap-able/0.1.1/lib.typ": *
 
 // ============================================================
 // Document Metadata
@@ -21,7 +21,7 @@
 
 #show: mantys(
   name: "cap-able",
-  version: "0.1.0",
+  version: "0.1.1",
   authors: (
     "Schrödinger Blume",
   ),
@@ -108,7 +108,7 @@ For documentation generation only:
 Once published to Typst Universe, import directly:
 
 ```typst
-#import "@preview/cap-able:0.1.0": *
+#import "@preview/cap-able:0.1.1": *
 ```
 
 == Manual Installation
@@ -119,7 +119,7 @@ After downloading from the repository:
 + Import with a relative path:
 
 ```typst
-#import "cap-able/0.1.0/lib.typ": *
+#import "cap-able/0.1.1/lib.typ": *
 ```
 
 // ============================================================
@@ -2243,7 +2243,7 @@ utility functions, and the two main configuration functions.
 
 #tidy.show-module(
   tidy.parse-module(
-    read("/cap-able/0.1.0/src/config.typ"),
+    read("/cap-able/0.1.1/src/config.typ"),
     name: "config",
   ),
   show-module-name: false,
@@ -2257,7 +2257,7 @@ supporting both main and continuation (continued table/figure) modes.
 
 #tidy.show-module(
   tidy.parse-module(
-    read("/cap-able/0.1.0/src/bicap.typ"),
+    read("/cap-able/0.1.1/src/bicap.typ"),
     name: "bicap",
   ),
   show-module-name: false,
@@ -2271,7 +2271,7 @@ and its aliases.
 
 #tidy.show-module(
   tidy.parse-module(
-    read("/cap-able/0.1.0/src/table.typ"),
+    read("/cap-able/0.1.1/src/table.typ"),
     name: "table",
   ),
   show-module-name: false,
@@ -2285,7 +2285,7 @@ and multiple width modes.
 
 #tidy.show-module(
   tidy.parse-module(
-    read("/cap-able/0.1.0/src/note.typ"),
+    read("/cap-able/0.1.1/src/note.typ"),
     name: "note",
   ),
   show-module-name: false,
@@ -2299,7 +2299,7 @@ supporting bilingual captions, overlay labels, and subcaptions.
 
 #tidy.show-module(
   tidy.parse-module(
-    read("/cap-able/0.1.0/src/figure.typ"),
+    read("/cap-able/0.1.1/src/figure.typ"),
     name: "figure",
   ),
   show-module-name: false,
@@ -2506,6 +2506,19 @@ Reference: `@tab:cmp` resolves to "@tab:cmp". Sub-tables (a)(b) get no automatic
 // Chapter 11: Changelog
 // ============================================================
 = Changelog
+
+== Version 0.1.1
+
+*Fixed*:
+
+- User-supplied `hlines` `row` index was incorrectly shifted relative to the markdown table when `continued-caption: true` (issue #8). The injected caption row at y=0 was not compensated for in the user's `row`, so `row: 2` ended up between the caption and the header. After the fix, `row` is always indexed against the markdown table itself, regardless of `continued-caption`. ⚠️ Compatibility: if you used `row: N+1` as a workaround, please switch back to `row: N` — otherwise you'll get two overlapping lines.
+- `subcaption-number-title-spacing` with a length value (e.g. `0.3em`) raised `"cannot join string with length"` because the length was being joined into the content as a value; this also suppressed the hidden-figure registration, leading to a chain failure where `@subfig` reported "label not exist" (issue #9). The fix routes the value through `handle-spacing`, which wraps lengths/relatives into `h(...)` and passes content through.
+
+*Added*:
+
+- `subref-style` config on `capfig-style` / `capsubfig` (default `"letter"`, new `"full"`) — controls the letter style of `@subfig` cross-references. `"letter"` shows just the letter (backward-compatible, `Fig. 1a`); `"full"` keeps the `label-style` decorations (`Fig. 1(a)`). In `"full"` mode `label-sep` defaults to empty (decorations already separate visually). Issue #10.
+- `extra-rule` config on `captab` / `captab-style` (default `0.5pt`) — default stroke for `hlines` / `vlines` entries that omit `stroke`, so you don't repeat the same stroke per line. Accepts a single value (shared by h & v) or a `(h: ..., v: ...)` dict for per-axis. Per-line `stroke` still wins.
+- `hlines` / `vlines` entries now accept an *int shorthand*: `hlines: (2, 3, 4)` is equivalent to `((row: 2,), (row: 3,), (row: 4,))`. Can mix with full dicts: `hlines: (2, (row: 5, stroke: 1pt), 7)`.
 
 == Version 0.1.0
 

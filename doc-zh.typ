@@ -16,7 +16,7 @@
 
 #import "@preview/tidy:0.4.3"
 #import "@preview/mantys:1.0.2": *
-#import "cap-able/0.1.0/lib.typ": *
+#import "cap-able/0.1.1/lib.typ": *
 
 // ============================================================
 // 文档元数据
@@ -24,7 +24,7 @@
 
 #show: mantys(
   name: "cap-able",
-  version: "0.1.0",
+  version: "0.1.1",
   authors: (
     "Schrödinger Blume",
   ),
@@ -111,7 +111,7 @@
 发布到 Typst Universe 后，可直接导入：
 
 ```typst
-#import "@preview/cap-able:0.1.0": *
+#import "@preview/cap-able:0.1.1": *
 ```
 
 == 手动安装
@@ -122,7 +122,7 @@
 + 使用相对路径导入
 
 ```typst
-#import "cap-able/0.1.0/lib.typ": *
+#import "cap-able/0.1.1/lib.typ": *
 ```
 
 // ============================================================
@@ -2285,7 +2285,7 @@ caption-text: (
 
 #tidy.show-module(
   tidy.parse-module(
-    read("/cap-able/0.1.0/src/config.typ"),
+    read("/cap-able/0.1.1/src/config.typ"),
     name: "config",
   ),
   show-module-name: false,
@@ -2299,7 +2299,7 @@ caption-text: (
 
 #tidy.show-module(
   tidy.parse-module(
-    read("/cap-able/0.1.0/src/bicap.typ"),
+    read("/cap-able/0.1.1/src/bicap.typ"),
     name: "bicap",
   ),
   show-module-name: false,
@@ -2313,7 +2313,7 @@ caption-text: (
 
 #tidy.show-module(
   tidy.parse-module(
-    read("/cap-able/0.1.0/src/table.typ"),
+    read("/cap-able/0.1.1/src/table.typ"),
     name: "table",
   ),
   show-module-name: false,
@@ -2327,7 +2327,7 @@ caption-text: (
 
 #tidy.show-module(
   tidy.parse-module(
-    read("/cap-able/0.1.0/src/note.typ"),
+    read("/cap-able/0.1.1/src/note.typ"),
     name: "note",
   ),
   show-module-name: false,
@@ -2341,7 +2341,7 @@ caption-text: (
 
 #tidy.show-module(
   tidy.parse-module(
-    read("/cap-able/0.1.0/src/figure.typ"),
+    read("/cap-able/0.1.1/src/figure.typ"),
     name: "figure",
   ),
   show-module-name: false,
@@ -2549,6 +2549,19 @@ cap-able 目前*不提供* `capsubtab`。原因：
 // 第十一章：变更日志
 // ============================================================
 = 变更日志
+
+== 版本 0.1.1
+
+*修复*：
+
+- 修复 `continued-caption: true` 时，用户自定义 `hlines` 的 `row` 索引相对 markdown 表格错位的问题（issue #8）。续页 caption 行注入会占 y=0，之前用户的 `row` 未跟着补 1，导致用户写 `row: 2` 实际落在 caption 与表头之间。修复后 `row` 始终按 markdown 表格自身行号计算，无论是否启用 `continued-caption` 行为一致。⚠️ 兼容性：如果之前用 `row: N+1` 作为 workaround 绕过 bug，修复后请改回 `row: N`，否则会有两条线重叠。
+- 修复 `subcaption-number-title-spacing` 设为 length（如 `0.3em`）时，渲染处把长度当 content join 引发 `"cannot join string with length"`，进而抑制 hidden figure 注册、`@subfig` 报 "label not exist" 的连锁问题（issue #9）。改用 `handle-spacing` 把 length/relative 自动转 `h(...)`，content 直通。
+
+*新增功能*：
+
+- `capfig-style` / `capsubfig` 新增 `subref-style` 字段（默认 `"letter"`，新增 `"full"`）—— 控制 `@subfig` 交叉引用的字母样式。`"letter"` 仅字母（向后兼容，`图 1a`），`"full"` 保留 `label-style` 装饰（`图 1(a)`）。`"full"` 模式下 `label-sep` 默认空字符串（装饰自带视觉分隔）。issue #10。
+- `captab` / `captab-style` 新增 `extra-rule` 字段（默认 `0.5pt`）—— `hlines` / `vlines` 缺省 `stroke` 时的默认值，避免每条线重复写 stroke。接受单值（h、v 共用）或 dict `(h: ..., v: ...)` 拆分横/竖线。per-line `stroke` 仍 wins。
+- `hlines` / `vlines` 数组的每一项现支持 *int 简写*：`hlines: (2, 3, 4)` 等价 `((row: 2,), (row: 3,), (row: 4,))`。可与完整 dict 混用：`hlines: (2, (row: 5, stroke: 1pt), 7)`。
 
 == 版本 0.1.0
 

@@ -4,7 +4,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.1.0-blue" alt="version">
+  <img src="https://img.shields.io/badge/version-0.1.1-blue" alt="version">
   <img src="https://img.shields.io/badge/license-MIT-green" alt="license">
   <img src="https://img.shields.io/badge/typst-0.13.0+-orange" alt="typst">
 </p>
@@ -36,7 +36,7 @@ A comprehensive Typst package for creating professional three-line tables and fi
 ### Quick Start
 
 ```typst
-#import "@preview/cap-able:0.1.0": *
+#import "@preview/cap-able:0.1.1": *
 
 // Three-line table
 #captab(
@@ -119,7 +119,7 @@ MIT License — see [LICENSE](LICENSE) for details.
 ### 快速开始
 
 ```typst
-#import "@preview/cap-able:0.1.0": *
+#import "@preview/cap-able:0.1.1": *
 
 // 三线表
 #set text(lang: "zh")

@@ -13,7 +13,7 @@
 
 #import "@preview/tidy:0.4.3"
 #import "@preview/mantys:1.0.2": *
-#import "cap-able/0.1.0/lib.typ": *
+#import "cap-able/0.1.1/lib.typ": *
 
 // ============================================================
 // Document Metadata
@@ -21,7 +21,7 @@
 
 #show: mantys(
   name: "cap-able",
-  version: "0.1.0",
+  version: "0.1.1",
   authors: (
     "Schrödinger Blume",
   ),
@@ -108,7 +108,7 @@ For documentation generation only:
 Once published to Typst Universe, import directly:
 
 ```typst
-#import "@preview/cap-able:0.1.0": *
+#import "@preview/cap-able:0.1.1": *
 ```
 
 == Manual Installation
@@ -119,7 +119,7 @@ After downloading from the repository:
 + Import with a relative path:
 
 ```typst
-#import "cap-able/0.1.0/lib.typ": *
+#import "cap-able/0.1.1/lib.typ": *
 ```
 
 // ============================================================
@@ -351,14 +351,21 @@ The `columns` parameter accepts an array of lengths, for example:
 
 == Additional Lines
 
-Add extra horizontal or vertical lines for complex layouts:
+Add extra horizontal or vertical lines for complex layouts. Each entry in `hlines` / `vlines` may be an *`int` shorthand* (just the row/col index, all other fields default) or a *full dict*:
 
 ```typst
+// Shorthand: plain int list
+#captab(hlines: (2, 3), vlines: (1, 2), caption: [...])[ ... ]
+
+// Full dict (customise stroke / start / end)
 #captab(
   hlines: ((row: 3, stroke: 1pt),),   // Add 1pt horizontal line after row 3
   vlines: ((col: 1, start: 1),),      // Add vertical line at column 1 (from row 1)
   caption: [Table with Extra Lines],
 )[...]
+
+// Mixed
+#captab(hlines: (2, (row: 5, stroke: 1.5pt + red), 7), ...)[ ... ]
 ```
 
 #captab(
@@ -372,6 +379,40 @@ Add extra horizontal or vertical lines for complex layouts:
   | 4 | 5 | 6 |
   | 7 | 8 | 9 |
 ]
+
+=== Global default stroke `extra-rule`
+
+When every extra line in a table (or document) shares the same stroke, set a global default rather than repeating it per line:
+
+```typst
+#show: captab-style.with(extra-rule: 0.5pt + red)
+
+#captab(
+  hlines: ((row: 2,), (row: 3,)),     // both inherit 0.5pt + red, no repetition
+)[ ... ]
+```
+
+`extra-rule` accepts a *single value* (shared by hlines & vlines) or a *dict form* for per-axis control:
+
+```typst
+#show: captab-style.with(
+  extra-rule: (h: 1pt + blue, v: 0.3pt + gray),
+)
+```
+
+Per-line `stroke` still wins:
+
+```typst
+#captab(
+  extra-rule: 0.5pt + green,
+  hlines: (
+    (row: 2,),                        // 0.5pt + green ← inherits
+    (row: 5, stroke: 1.5pt + orange), // 1.5pt + orange ← overrides
+  ),
+)
+```
+
+Configurable globally on `cap-style` / `captab-style`, or per-call via `captab(extra-rule: ...)`. Default `0.5pt` matches the previous hard-coded behaviour.
 
 == Three-Line Strokes
 
@@ -872,6 +913,26 @@ Live demonstration:
 )
 
 See @fig:sub-a and @fig:sub-b (overall @fig:subref-main).
+
+=== `subref-style`: keep `label-style` decorations in `@ref`
+
+By default `subref-style: "letter"` — `@fig:sub-a` renders as `Fig. 1a` (just the letter).
+
+Set `"full"` to *also keep the `label-style` decorations in cross-references*:
+
+```typst
+#capsubfig(
+  ...
+  label-style: "(a)",
+  subref-style: "full",        // ← keep the parentheses in @ref
+)
+```
+
+Renders: `@fig:sub-a` → `Fig. 1(a)`, matching the subcaption prefix.
+
+Works with Chinese-style prefixes (`label-style: "图a"` + `"full"` → `图 1图a`), brackets (`"[A]"` → `Fig. 1[A]`), etc. In `"full"` mode, `label-sep` defaults to empty string since the decorations already separate visually; override `label-sep` explicitly if you want a different separator.
+
+Configurable globally via `capfig-style(subref-style: "full")` or per-call on `capsubfig`.
 
 // ============================================================
 // Chapter 6: Configuration
@@ -1486,6 +1547,7 @@ All parameters of `captab-style` with defaults. `auto` means auto-select based o
   [`top-rule`],               [`1.5pt`],       [Three-line top rule stroke (any stroke value, e.g. `2pt + red`; only used when `three-line-table: true`)],
   [`middle-rule`],            [`0.5pt`],       [Three-line middle rule stroke],
   [`bottom-rule`],            [`1.5pt`],       [Three-line bottom rule stroke],
+  [`extra-rule`],             [`0.5pt`],       [Default stroke for `hlines` / `vlines` entries that omit `stroke`; accepts a single value or `(h: ..., v: ...)` dict for per-axis control],
   [`breakable`],              [`true`],        [Allow the table to break across pages (outer block's `breakable`)],
   [`repeat-header`],          [`true`],        [Repeat the markdown header row on each continuation page (`true` / `false` / positive int `n`)],
   [`continued-caption`],         [`false`],       [Repeat the caption on each continuation page using the refer-to ("Cont. Table X.Y") format],
@@ -1596,7 +1658,8 @@ All parameters of `captab-style` with defaults. `auto` means auto-select based o
   [`label-bg-shape`],     [`"rect"`],      [Background shape],
   [`label-bg-radius`],    [`2pt`],         [Rect radius],
   [`label-bg-inset`],     [`3pt`],         [Background padding],
-  [`label-sep`],          [`auto`],        [Subref separator (`auto`: number -> `"."`, letter -> `""`)],
+  [`label-sep`],          [`auto`],        [Subref separator (`auto`: number -> `"."`, letter -> `""`; defaults to `""` in `subref-style: "full"` mode)],
+  [`subref-style`],       [`"letter"`],    [Subref letter style: `"letter"` (just the letter, e.g. `Fig. 1a`) / `"full"` (with label-style decorations, e.g. `Fig. 1(a)`)],
   [`caption-position`],   [`bottom`],      [Caption position relative to body in `#bicap()[body]` mode (figures default to `bottom`)],
   [`caption-align`],      [`"center"`],    [Caption horizontal alignment: `"center"` / `"left"` / `"right"` / `"text-left"` / `"text-right"`; or dict `(main, continued)`],
   [`placement`],          [`none`],        [Floating placement: `none` / `top` / `bottom` / `auto`],
@@ -1631,11 +1694,12 @@ All parameters of `captab-style` with defaults. `auto` means auto-select based o
   [`top-rule`],    [`auto` / `stroke`],        [Top rule stroke (`auto` reads global `top-rule`, default `1.5pt`; only used when `three-line-table: true`)],
   [`middle-rule`], [`auto` / `stroke`],        [Middle rule stroke (`auto` reads global `middle-rule`, default `0.5pt`)],
   [`bottom-rule`], [`auto` / `stroke`],        [Bottom rule stroke (`auto` reads global `bottom-rule`, default `1.5pt`)],
+  [`extra-rule`], [`auto` / `stroke` / `dict`], [Default stroke for `hlines` / `vlines` (when entries omit `stroke`); single value or `(h: ..., v: ...)` dict for per-axis (missing keys fall back to `0.5pt`); per-line `stroke` still wins],
   [`breakable`],   [`auto` / `bool`],          [Allow page break (`auto` reads global `breakable`, default `true`)],
   [`repeat-header`],[`auto` / `bool` / `int`], [Repeat header row on continuation pages (`auto` reads global `repeat-header`)],
   [`continued-caption`],[`auto` / `bool`],        [Repeat caption on each continuation page (refer-to format)],
-  [`hlines`],      [`array` of `dictionary`],  [Extra horizontal rules (see below)],
-  [`vlines`],      [`array` of `dictionary`],  [Extra vertical rules (see below)],
+  [`hlines`],      [`array` of `int` / `dictionary`],  [Extra horizontal rules; entries may be `int` (shorthand for `(row: N)`) or full dicts],
+  [`vlines`],      [`array` of `int` / `dictionary`],  [Extra vertical rules; entries may be `int` (shorthand for `(col: N)`) or full dicts],
   [`label`],       [`none` / `label`],         [Cross-reference label],
   [`content`],     [`content` (positional)],   [Markdown-style body],
   table.hline(stroke: 1.5pt),
@@ -2018,7 +2082,7 @@ All params besides `subfigs` accept `auto` (inherit global `capfig-style`):
 
 - `columns` (`auto` / `int`): Columns per row; `auto` = single row.
 - `caption` / `caption-en` / `label` / `refer-to` / `show-caption`: Same as `capfig`.
-- `gutter`, `subcaption-pos`, `show-subcaption`, `show-subcaption-label`, `align`, `label-mode`, `label-style`, `label-font`, `label-size`, `label-offset`, `label-text-color`, `label-stroke`, `label-bg`, `label-bg-shape`, `label-bg-radius`, `label-bg-inset`, `label-sep`: Override the subfigure defaults from `capfig-style`.
+- `gutter`, `subcaption-pos`, `show-subcaption`, `show-subcaption-label`, `align`, `label-mode`, `label-style`, `label-font`, `label-size`, `label-offset`, `label-text-color`, `label-stroke`, `label-bg`, `label-bg-shape`, `label-bg-radius`, `label-bg-inset`, `label-sep`, `subref-style`: Override the subfigure defaults from `capfig-style`.
   - `label-style` accepts `str` (overlay/subcaption share the style) or `(overlay: ..., subcaption: ...)` dict for per-side control. Missing keys fall back to the package default `"(a)"`.
 - `figure-above`, `figure-below`, `caption-above`, `subcaption-above`, `subcaption-below`: Spacing overrides.
 - `subcaption-number-title-spacing` (`auto` / `content` / `length`): separator between subcaption number and body; `auto` inherits the main caption's `number-title-spacing`.
@@ -2179,7 +2243,7 @@ utility functions, and the two main configuration functions.
 
 #tidy.show-module(
   tidy.parse-module(
-    read("/cap-able/0.1.0/src/config.typ"),
+    read("/cap-able/0.1.1/src/config.typ"),
     name: "config",
   ),
   show-module-name: false,
@@ -2193,7 +2257,7 @@ supporting both main and continuation (continued table/figure) modes.
 
 #tidy.show-module(
   tidy.parse-module(
-    read("/cap-able/0.1.0/src/bicap.typ"),
+    read("/cap-able/0.1.1/src/bicap.typ"),
     name: "bicap",
   ),
   show-module-name: false,
@@ -2207,7 +2271,7 @@ and its aliases.
 
 #tidy.show-module(
   tidy.parse-module(
-    read("/cap-able/0.1.0/src/table.typ"),
+    read("/cap-able/0.1.1/src/table.typ"),
     name: "table",
   ),
   show-module-name: false,
@@ -2221,7 +2285,7 @@ and multiple width modes.
 
 #tidy.show-module(
   tidy.parse-module(
-    read("/cap-able/0.1.0/src/note.typ"),
+    read("/cap-able/0.1.1/src/note.typ"),
     name: "note",
   ),
   show-module-name: false,
@@ -2235,7 +2299,7 @@ supporting bilingual captions, overlay labels, and subcaptions.
 
 #tidy.show-module(
   tidy.parse-module(
-    read("/cap-able/0.1.0/src/figure.typ"),
+    read("/cap-able/0.1.1/src/figure.typ"),
     name: "figure",
   ),
   show-module-name: false,
@@ -2442,6 +2506,19 @@ Reference: `@tab:cmp` resolves to "@tab:cmp". Sub-tables (a)(b) get no automatic
 // Chapter 11: Changelog
 // ============================================================
 = Changelog
+
+== Version 0.1.1
+
+*Fixed*:
+
+- User-supplied `hlines` `row` index was incorrectly shifted relative to the markdown table when `continued-caption: true` (issue #8). The injected caption row at y=0 was not compensated for in the user's `row`, so `row: 2` ended up between the caption and the header. After the fix, `row` is always indexed against the markdown table itself, regardless of `continued-caption`. ⚠️ Compatibility: if you used `row: N+1` as a workaround, please switch back to `row: N` — otherwise you'll get two overlapping lines.
+- `subcaption-number-title-spacing` with a length value (e.g. `0.3em`) raised `"cannot join string with length"` because the length was being joined into the content as a value; this also suppressed the hidden-figure registration, leading to a chain failure where `@subfig` reported "label not exist" (issue #9). The fix routes the value through `handle-spacing`, which wraps lengths/relatives into `h(...)` and passes content through.
+
+*Added*:
+
+- `subref-style` config on `capfig-style` / `capsubfig` (default `"letter"`, new `"full"`) — controls the letter style of `@subfig` cross-references. `"letter"` shows just the letter (backward-compatible, `Fig. 1a`); `"full"` keeps the `label-style` decorations (`Fig. 1(a)`). In `"full"` mode `label-sep` defaults to empty (decorations already separate visually). Issue #10.
+- `extra-rule` config on `captab` / `captab-style` (default `0.5pt`) — default stroke for `hlines` / `vlines` entries that omit `stroke`, so you don't repeat the same stroke per line. Accepts a single value (shared by h & v) or a `(h: ..., v: ...)` dict for per-axis. Per-line `stroke` still wins.
+- `hlines` / `vlines` entries now accept an *int shorthand*: `hlines: (2, 3, 4)` is equivalent to `((row: 2,), (row: 3,), (row: 4,))`. Can mix with full dicts: `hlines: (2, (row: 5, stroke: 1pt), 7)`.
 
 == Version 0.1.0
 

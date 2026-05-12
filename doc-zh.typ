@@ -16,7 +16,7 @@
 
 #import "@preview/tidy:0.4.3"
 #import "@preview/mantys:1.0.2": *
-#import "cap-able/0.1.0/lib.typ": *
+#import "cap-able/0.1.1/lib.typ": *
 
 // ============================================================
 // 文档元数据
@@ -24,7 +24,7 @@
 
 #show: mantys(
   name: "cap-able",
-  version: "0.1.0",
+  version: "0.1.1",
   authors: (
     "Schrödinger Blume",
   ),
@@ -111,7 +111,7 @@
 发布到 Typst Universe 后，可直接导入：
 
 ```typst
-#import "@preview/cap-able:0.1.0": *
+#import "@preview/cap-able:0.1.1": *
 ```
 
 == 手动安装
@@ -122,7 +122,7 @@
 + 使用相对路径导入
 
 ```typst
-#import "cap-able/0.1.0/lib.typ": *
+#import "cap-able/0.1.1/lib.typ": *
 ```
 
 // ============================================================
@@ -357,14 +357,21 @@
 
 == 额外线条
 
-对于复杂表格，可添加额外的横线或竖线：
+对于复杂表格，可添加额外的横线或竖线。`hlines` / `vlines` 数组的每一项可以是 *`int` 简写*（只指定行/列号，其它走默认）或*完整 dict*：
 
 ```typst
+// 简写：纯 int 列表
+#captab(hlines: (2, 3), vlines: (1, 2), caption: [...])[ ... ]
+
+// 完整 dict（自定义 stroke / start / end）
 #captab(
   hlines: ((row: 3, stroke: 1pt),),   // 在第3行后添加 1 磅横线
   vlines: ((col: 1, start: 1),),      // 在第1列右侧添加竖线（从第1行起）
   caption: [含额外线条的表格],
 )[...]
+
+// 混合
+#captab(hlines: (2, (row: 5, stroke: 1.5pt + red), 7), ...)[ ... ]
 ```
 
 #captab(
@@ -378,6 +385,40 @@
   | 4 | 5 | 6 |
   | 7 | 8 | 9 |
 ]
+
+=== 全局默认 stroke `extra-rule`
+
+如果整张表（或全文档）所有额外线都用同样的 stroke，与其每条都写一次，不如设全局默认：
+
+```typst
+#show: captab-style.with(extra-rule: 0.5pt + red)
+
+#captab(
+  hlines: ((row: 2,), (row: 3,)),     // 都跟随 0.5pt + red，无需重复
+)[ ... ]
+```
+
+`extra-rule` 接受 *单值*（h、v 共用）或 *dict 形式*分别指定横/竖线：
+
+```typst
+#show: captab-style.with(
+  extra-rule: (h: 1pt + blue, v: 0.3pt + gray),
+)
+```
+
+per-line `stroke` 仍然能 *单独覆盖*（覆盖 > 全局）：
+
+```typst
+#captab(
+  extra-rule: 0.5pt + green,
+  hlines: (
+    (row: 2,),                        // 0.5pt + green ← 跟随
+    (row: 5, stroke: 1.5pt + orange), // 1.5pt + orange ← 覆盖
+  ),
+)
+```
+
+可在 `cap-style`/`captab-style` 全局或 `captab(extra-rule: ...)` per-call 设置。默认 `0.5pt` 与旧版一致。
 
 == 三线粗细
 
@@ -907,6 +948,26 @@ subcaption 前缀编号（如 `"(a)"`）和正文之间的间距由 `subcaption-
 )
 
 详见@fig:sub-a 和@fig:sub-b (整体见@fig:subref-main)。
+
+=== `subref-style`：让 `@ref` 跟随 `label-style` 装饰
+
+默认 `subref-style: "letter"`——`@fig:sub-a` 渲染成 `图 1a`（仅字母）。
+
+设为 `"full"` 后，*交叉引用同样保留 `label-style` 的前后缀装饰*：
+
+```typst
+#capsubfig(
+  ...
+  label-style: "(a)",
+  subref-style: "full",        // ← 让 @ref 也带括号
+)
+```
+
+渲染：`@fig:sub-a` → `图 1(a)`，与 subcaption 前缀样式视觉一致。
+
+也支持中文前缀（`label-style: "图a"` + `"full"` → `图 1图a`）、方括号（`"[A]"` → `图 1[A]`）等。`label-sep` 在 `"full"` 模式下默认空字符串，因为装饰本身已提供视觉分隔；如果需要不同分隔符可显式覆盖。
+
+可在 `capfig-style(subref-style: "full")` 全局，或 `capsubfig(subref-style: ...)` per-call 设置。
 
 // ============================================================
 // 第六章：配置详解
@@ -1534,6 +1595,7 @@ caption-text: (
   [`top-rule`], [`1.5pt`], [三线表顶线 stroke（接受任何 stroke 值，如 `2pt + red`；仅 `three-line-table: true` 时生效）],
   [`middle-rule`], [`0.5pt`], [三线表中线 stroke],
   [`bottom-rule`], [`1.5pt`], [三线表底线 stroke],
+  [`extra-rule`], [`0.5pt`], [`hlines` / `vlines` 中未单独指定 `stroke` 时的默认 stroke；接受单值或 dict `(h: ..., v: ...)` 拆分横/竖线],
   [`breakable`], [`true`], [表格能否跨页（外层 block 的 `breakable`）],
   [`repeat-header`], [`true`], [跨页时是否重复 markdown 表头行（`true` / `false` / 正整数 `n`）],
   [`continued-caption`], [`false`], [跨页时是否在每个续页顶部重复题注（"续表 X.Y"格式，复用 refer-to 渲染）],
@@ -1643,7 +1705,8 @@ caption-text: (
   [`label-bg-shape`], [`"rect"`], [背景形状 `"rect"` / `"circle"`],
   [`label-bg-radius`], [`2pt`], [矩形圆角],
   [`label-bg-inset`], [`3pt`], [背景内边距],
-  [`label-sep`], [`auto`], [子图引用分隔符（`auto`：数字 → `"."`，字母 → `""`）],
+  [`label-sep`], [`auto`], [子图引用分隔符（`auto`：数字 → `"."`，字母 → `""`；`subref-style: "full"` 模式下默认 `""`）],
+  [`subref-style`], [`"letter"`], [子图交叉引用字母样式：`"letter"`（仅字母，如 `图 1a`）/ `"full"`（带 label-style 装饰，如 `图 1(a)`）],
   [`caption-position`], [`bottom`], [#raw("#bicap()[body]") 模式下题注相对 body 的位置（图片默认 `bottom`）],
   [`caption-align`], [`"center"`], [题注水平对齐：`"center"` / `"left"` / `"right"` / `"text-left"` / `"text-right"`；或 dict `(main, continued)`],
   [`placement`], [`none`], [浮动定位：`none` / `top` / `bottom` / `auto`],
@@ -1678,11 +1741,12 @@ caption-text: (
   [`top-rule`], [`auto` / `stroke`], [顶线 stroke（`auto` 取全局 `top-rule`，默认 `1.5pt`；仅 `three-line-table: true` 时生效）],
   [`middle-rule`], [`auto` / `stroke`], [中线 stroke（`auto` 取全局 `middle-rule`，默认 `0.5pt`）],
   [`bottom-rule`], [`auto` / `stroke`], [底线 stroke（`auto` 取全局 `bottom-rule`，默认 `1.5pt`）],
+  [`extra-rule`], [`auto` / `stroke` / `dict`], [`hlines` / `vlines` 缺省 stroke 时的默认值；接单值或 dict `(h: ..., v: ...)` 分别指定横/竖线（缺失键回退包默认 `0.5pt`）；per-line `stroke` 仍可单独覆盖],
   [`breakable`], [`auto` / `bool`], [是否允许跨页（`auto` 取全局 `breakable`，默认 `true`）],
   [`repeat-header`], [`auto` / `bool` / `int`], [跨页时是否重复表头行（`auto` 取全局 `repeat-header`）],
   [`continued-caption`], [`auto` / `bool`], [跨页时是否在每个续页顶部重复题注（"续表 X.Y"格式）],
-  [`hlines`], [`array` of `dictionary`], [额外横线数组],
-  [`vlines`], [`array` of `dictionary`], [额外竖线数组],
+  [`hlines`], [`array` of `int` / `dictionary`], [额外横线数组；元素可为 `int`（简写，等价 `(row: N)`）或完整 dict],
+  [`vlines`], [`array` of `int` / `dictionary`], [额外竖线数组；元素可为 `int`（简写，等价 `(col: N)`）或完整 dict],
   [`label`], [`none` / `label`], [本表标签],
   [`content`], [`content`（位置参数）], [Markdown 风格表格体],
   table.hline(stroke: 1.5pt),
@@ -2060,7 +2124,7 @@ caption-text: (
 
 - `columns`（`auto` / `int`）：每行列数；`auto` 表示所有子图在一行。
 - `caption` / `caption-en` / `label` / `refer-to` / `show-caption`：与 `capfig` 同义。
-- `gutter`、`subcaption-pos`、`show-subcaption`、`show-subcaption-label`、`align`、`label-mode`、`label-style`、`label-font`、`label-size`、`label-offset`、`label-text-color`、`label-stroke`、`label-bg`、`label-bg-shape`、`label-bg-radius`、`label-bg-inset`、`label-sep`：覆盖 `capfig-style` 的同名子图默认值。
+- `gutter`、`subcaption-pos`、`show-subcaption`、`show-subcaption-label`、`align`、`label-mode`、`label-style`、`label-font`、`label-size`、`label-offset`、`label-text-color`、`label-stroke`、`label-bg`、`label-bg-shape`、`label-bg-radius`、`label-bg-inset`、`label-sep`、`subref-style`：覆盖 `capfig-style` 的同名子图默认值。
   - `label-style` 接受 `str`（overlay/subcaption 共用）或 `(overlay: ..., subcaption: ...)` 字典分别指定。缺失键回退包默认 `"(a)"`。
 - `figure-above`、`figure-below`、`caption-above`、`subcaption-above`、`subcaption-below`：间距覆盖。
 - `subcaption-number-title-spacing`（`auto` / `content` / `length`）：子标题"编号-正文"分隔符。`auto` 继承大题注的 `number-title-spacing`（默认配置里那个分隔符）。
@@ -2221,7 +2285,7 @@ caption-text: (
 
 #tidy.show-module(
   tidy.parse-module(
-    read("/cap-able/0.1.0/src/config.typ"),
+    read("/cap-able/0.1.1/src/config.typ"),
     name: "config",
   ),
   show-module-name: false,
@@ -2235,7 +2299,7 @@ caption-text: (
 
 #tidy.show-module(
   tidy.parse-module(
-    read("/cap-able/0.1.0/src/bicap.typ"),
+    read("/cap-able/0.1.1/src/bicap.typ"),
     name: "bicap",
   ),
   show-module-name: false,
@@ -2249,7 +2313,7 @@ caption-text: (
 
 #tidy.show-module(
   tidy.parse-module(
-    read("/cap-able/0.1.0/src/table.typ"),
+    read("/cap-able/0.1.1/src/table.typ"),
     name: "table",
   ),
   show-module-name: false,
@@ -2263,7 +2327,7 @@ caption-text: (
 
 #tidy.show-module(
   tidy.parse-module(
-    read("/cap-able/0.1.0/src/note.typ"),
+    read("/cap-able/0.1.1/src/note.typ"),
     name: "note",
   ),
   show-module-name: false,
@@ -2277,7 +2341,7 @@ caption-text: (
 
 #tidy.show-module(
   tidy.parse-module(
-    read("/cap-able/0.1.0/src/figure.typ"),
+    read("/cap-able/0.1.1/src/figure.typ"),
     name: "figure",
   ),
   show-module-name: false,
@@ -2485,6 +2549,19 @@ cap-able 目前*不提供* `capsubtab`。原因：
 // 第十一章：变更日志
 // ============================================================
 = 变更日志
+
+== 版本 0.1.1
+
+*修复*：
+
+- 修复 `continued-caption: true` 时，用户自定义 `hlines` 的 `row` 索引相对 markdown 表格错位的问题（issue #8）。续页 caption 行注入会占 y=0，之前用户的 `row` 未跟着补 1，导致用户写 `row: 2` 实际落在 caption 与表头之间。修复后 `row` 始终按 markdown 表格自身行号计算，无论是否启用 `continued-caption` 行为一致。⚠️ 兼容性：如果之前用 `row: N+1` 作为 workaround 绕过 bug，修复后请改回 `row: N`，否则会有两条线重叠。
+- 修复 `subcaption-number-title-spacing` 设为 length（如 `0.3em`）时，渲染处把长度当 content join 引发 `"cannot join string with length"`，进而抑制 hidden figure 注册、`@subfig` 报 "label not exist" 的连锁问题（issue #9）。改用 `handle-spacing` 把 length/relative 自动转 `h(...)`，content 直通。
+
+*新增功能*：
+
+- `capfig-style` / `capsubfig` 新增 `subref-style` 字段（默认 `"letter"`，新增 `"full"`）—— 控制 `@subfig` 交叉引用的字母样式。`"letter"` 仅字母（向后兼容，`图 1a`），`"full"` 保留 `label-style` 装饰（`图 1(a)`）。`"full"` 模式下 `label-sep` 默认空字符串（装饰自带视觉分隔）。issue #10。
+- `captab` / `captab-style` 新增 `extra-rule` 字段（默认 `0.5pt`）—— `hlines` / `vlines` 缺省 `stroke` 时的默认值，避免每条线重复写 stroke。接受单值（h、v 共用）或 dict `(h: ..., v: ...)` 拆分横/竖线。per-line `stroke` 仍 wins。
+- `hlines` / `vlines` 数组的每一项现支持 *int 简写*：`hlines: (2, 3, 4)` 等价 `((row: 2,), (row: 3,), (row: 4,))`。可与完整 dict 混用：`hlines: (2, (row: 5, stroke: 1pt), 7)`。
 
 == 版本 0.1.0
 

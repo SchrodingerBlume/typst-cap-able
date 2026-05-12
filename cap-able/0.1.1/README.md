@@ -4,9 +4,9 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.1.1-blue" alt="version">
-  <img src="https://img.shields.io/badge/license-MIT-green" alt="license">
-  <img src="https://img.shields.io/badge/typst-0.13.0+-orange" alt="typst">
+  <img src="https://img.shields.io/badge/version-0.1.1-blue" alt="version: 0.1.1">
+  <img src="https://img.shields.io/badge/license-MIT-green" alt="license: MIT">
+  <img src="https://img.shields.io/badge/typst-0.13.0+-orange" alt="minimum typst version: 0.13.0">
 </p>
 
 <p align="center">
@@ -14,7 +14,7 @@
 </p>
 
 <p align="center">
-  📖 <a href="https://github.com/SchrodingerBlume/typst-cap-able/blob/main/doc-en.pdf">English Documentation</a> · 📖 <a href="https://github.com/SchrodingerBlume/typst-cap-able/blob/main/doc-zh.pdf">中文文档</a>
+  📖 <a href="https://github.com/SchrodingerBlume/typst-cap-able/releases/download/v0.1.1/doc-en.pdf">English Documentation</a> · 📖 <a href="https://github.com/SchrodingerBlume/typst-cap-able/releases/download/v0.1.1/doc-zh.pdf">中文文档</a>
 </p>
 
 ---
@@ -93,8 +93,8 @@ A comprehensive Typst package for creating professional three-line tables and fi
 
 Full documentation is available in this repository:
 
-- [English Documentation (PDF)](https://github.com/SchrodingerBlume/typst-cap-able/blob/main/doc-en.pdf)
-- [Chinese Documentation (PDF)](https://github.com/SchrodingerBlume/typst-cap-able/blob/main/doc-zh.pdf)
+- [English Documentation (PDF)](https://github.com/SchrodingerBlume/typst-cap-able/releases/download/v0.1.1/doc-en.pdf)
+- [Chinese Documentation (PDF)](https://github.com/SchrodingerBlume/typst-cap-able/releases/download/v0.1.1/doc-zh.pdf)
 
 ### License
 
@@ -180,8 +180,8 @@ MIT License — see [LICENSE](LICENSE) for details.
 
 完整文档见本仓库：
 
-- [中文文档 (PDF)](https://github.com/SchrodingerBlume/typst-cap-able/blob/main/doc-zh.pdf)
-- [英文文档 (PDF)](https://github.com/SchrodingerBlume/typst-cap-able/blob/main/doc-en.pdf)
+- [中文文档 (PDF)](https://github.com/SchrodingerBlume/typst-cap-able/releases/download/v0.1.1/doc-zh.pdf)
+- [英文文档 (PDF)](https://github.com/SchrodingerBlume/typst-cap-able/releases/download/v0.1.1/doc-en.pdf)
 
 ### 许可
 

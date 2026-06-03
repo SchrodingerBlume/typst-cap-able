@@ -932,9 +932,17 @@
   it
 ) = {
   // ── 1. Patch state（仅覆盖非 auto 字段）/ Patch state (only non-auto) ──
-  context {
-    let cur = table-style-config.get()
-    let new = cur
+  // 用 state.update(prev => ...) 函数式更新，*避免* 在 context 内 read-then-write——
+  // 后者会让 Typst layout convergence 检测把每次迭代视作潜在状态变更，从而触发
+  // "layout did not converge within 5 attempts" 警告（下游 issue：在嵌套 context 内
+  // 二次套用 captab-style 时出现）。
+  // Use functional state.update(prev => ...) — avoids the read-then-write inside a
+  // context block, which can cause Typst's layout convergence checker to flag every
+  // iteration as a possible state change and emit the "layout did not converge within
+  // 5 attempts" warning (reported downstream when re-applying captab-style inside a
+  // nested context).
+  table-style-config.update(prev => {
+    let new = prev
     if caption-above != auto { new.insert("caption-above", caption-above) }
     if caption-below != auto { new.insert("caption-below", caption-below) }
     if table-below != auto { new.insert("table-below", table-below) }
@@ -991,11 +999,13 @@
     if caption-position != auto { new.insert("caption-position", caption-position) }
     if caption-align != auto { new.insert("caption-align", caption-align) }
     if placement != () { new.insert("placement", placement) }
-    table-style-config.update(new)
-    // 表格宽度走独立的 table-width-config state；这里按 patch 语义在非 auto 时写入
-    // Width lives in its own table-width-config state; patch only when non-auto
-    if width != auto { table-width-config.update(width) }
-  }
+    new
+  })
+  // 表格宽度走独立的 table-width-config state；按 patch 语义在非 auto 时直接写入
+  // （不需要 read-then-write，state.update(value) 形式安全）
+  // Width lives in its own table-width-config state; patch via direct write
+  // (no read-then-write needed, so state.update(value) form is safe).
+  if width != auto { table-width-config.update(width) }
 
   // ── 2. 静态 figure.caption 位置 ──
   show figure.where(kind: table): set figure.caption(position: top)
@@ -1158,9 +1168,10 @@
   it,
 ) = {
   // ── 1. Patch state（仅覆盖非 auto 字段）/ Patch state (only non-auto) ──
-  context {
-    let cur = figure-style-config.get()
-    let new = cur
+  // 与 captab-style 同款：函数式 update 避免 layout-converge 警告。
+  // Same as captab-style: functional update avoids layout-converge warnings.
+  figure-style-config.update(prev => {
+    let new = prev
     if numbering-format != auto {
       new.insert("numbering-format", numbering-format)
       new.insert("chapter-level", calculate-chapter-levels(numbering-format))
@@ -1220,8 +1231,8 @@
     if caption-position != auto { new.insert("caption-position", caption-position) }
     if caption-align != auto { new.insert("caption-align", caption-align) }
     if placement != () { new.insert("placement", placement) }
-    figure-style-config.update(new)
-  }
+    new
+  })
 
   // ── 2. 编号回调（context 读取 state） ──
   set figure(

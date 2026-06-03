@@ -13,7 +13,7 @@
 
 #import "@preview/tidy:0.4.3"
 #import "@preview/mantys:1.0.2": *
-#import "cap-able/0.1.1/lib.typ": *
+#import "cap-able/0.1.2/lib.typ": *
 
 // ============================================================
 // Document Metadata
@@ -21,7 +21,7 @@
 
 #show: mantys(
   name: "cap-able",
-  version: "0.1.1",
+  version: "0.1.2",
   authors: (
     "Schrödinger Blume",
   ),
@@ -108,7 +108,7 @@ For documentation generation only:
 Once published to Typst Universe, import directly:
 
 ```typst
-#import "@preview/cap-able:0.1.1": *
+#import "@preview/cap-able:0.1.2": *
 ```
 
 == Manual Installation
@@ -119,7 +119,7 @@ After downloading from the repository:
 + Import with a relative path:
 
 ```typst
-#import "cap-able/0.1.1/lib.typ": *
+#import "cap-able/0.1.2/lib.typ": *
 ```
 
 // ============================================================
@@ -1550,7 +1550,7 @@ All parameters of `captab-style` with defaults. `auto` means auto-select based o
   [`extra-rule`],             [`0.5pt`],       [Default stroke for `hlines` / `vlines` entries that omit `stroke`; accepts a single value or `(h: ..., v: ...)` dict for per-axis control],
   [`breakable`],              [`true`],        [Allow the table to break across pages (outer block's `breakable`)],
   [`repeat-header`],          [`true`],        [Repeat the markdown header row on each continuation page (`true` / `false` / positive int `n`)],
-  [`continued-caption`],         [`false`],       [Repeat the caption on each continuation page using the refer-to ("Cont. Table X.Y") format],
+  [`show-continued-caption`],    [`false`],       [Repeat the caption on each continuation page using the refer-to ("Cont. Table X.Y") format. Deprecated alias `continued-caption` still works, removed in 0.2.0],
   [`caption-position`],       [`top`],         [Position of the caption relative to body in `#bicap()[body]` mode (`top` / `bottom`)],
   [`caption-align`],          [`"center"`],    [Caption horizontal alignment: `"center"` / `"left"` / `"right"` (table-local) / `"text-left"` / `"text-right"` (text-area-local); or dict `(main, continued)`],
   [`placement`],              [`none`],        [Floating placement: `none` / `top` / `bottom` / `auto` (forces `breakable: false` when active)],
@@ -1697,7 +1697,7 @@ All parameters of `captab-style` with defaults. `auto` means auto-select based o
   [`extra-rule`], [`auto` / `stroke` / `dict`], [Default stroke for `hlines` / `vlines` (when entries omit `stroke`); single value or `(h: ..., v: ...)` dict for per-axis (missing keys fall back to `0.5pt`); per-line `stroke` still wins],
   [`breakable`],   [`auto` / `bool`],          [Allow page break (`auto` reads global `breakable`, default `true`)],
   [`repeat-header`],[`auto` / `bool` / `int`], [Repeat header row on continuation pages (`auto` reads global `repeat-header`)],
-  [`continued-caption`],[`auto` / `bool`],        [Repeat caption on each continuation page (refer-to format)],
+  [`show-continued-caption`],[`auto` / `bool`],   [Repeat caption on each continuation page (refer-to format). Deprecated alias `continued-caption` still works (removed in 0.2.0); preferred name wins if both passed],
   [`hlines`],      [`array` of `int` / `dictionary`],  [Extra horizontal rules; entries may be `int` (shorthand for `(row: N)`) or full dicts],
   [`vlines`],      [`array` of `int` / `dictionary`],  [Extra vertical rules; entries may be `int` (shorthand for `(col: N)`) or full dicts],
   [`label`],       [`none` / `label`],         [Cross-reference label],
@@ -1912,7 +1912,7 @@ Mirrors Typst's native `figure(placement: ...)`: lifts the table/figure out of t
   [`caption-align`],[`auto` / `str` / `dict`],   [Caption horizontal alignment: `"center"` / `"left"` / `"right"` / `"text-left"` / `"text-right"`, or dict `(main, continued)`; `auto` reads global],
   [`placement`],    [`none` / `top` / `bottom` / `auto`], [Floating placement (`auto` = Typst picks the closer of top/bottom); forces `breakable: false` when active],
   [`breakable`],    [`bool`],               [Whether the outer block may break across pages (default `true`; lets a breakable body flow naturally)],
-  [`continued-caption`],[`bool`],              [When body breaks across pages, repeat the caption above each native `#table()` in body (default `false`; only when `kind == "table"`)],
+  [`show-continued-caption`],[`auto` / `bool`], [When body breaks across pages, repeat the caption above each native `#table()` in body (default `false`; only when `kind == "table"`). Deprecated alias `continued-caption` still works, removed in 0.2.0],
   [`repeat-header`],[`auto` / `bool` / `int`], [Override the `repeat` setting of the markdown header in body's `#table()` (`auto` leaves user's value alone; `true/false/int` overrides; only when `kind == "table"`)],
   [`body`],         [`none` / `content`],   [Optional body; may also be passed via trailing block `#bicap()[...]`],
   table.hline(stroke: 1.5pt),
@@ -2243,7 +2243,7 @@ utility functions, and the two main configuration functions.
 
 #tidy.show-module(
   tidy.parse-module(
-    read("/cap-able/0.1.1/src/config.typ"),
+    read("/cap-able/0.1.2/src/config.typ"),
     name: "config",
   ),
   show-module-name: false,
@@ -2257,7 +2257,7 @@ supporting both main and continuation (continued table/figure) modes.
 
 #tidy.show-module(
   tidy.parse-module(
-    read("/cap-able/0.1.1/src/bicap.typ"),
+    read("/cap-able/0.1.2/src/bicap.typ"),
     name: "bicap",
   ),
   show-module-name: false,
@@ -2271,7 +2271,7 @@ and its aliases.
 
 #tidy.show-module(
   tidy.parse-module(
-    read("/cap-able/0.1.1/src/table.typ"),
+    read("/cap-able/0.1.2/src/table.typ"),
     name: "table",
   ),
   show-module-name: false,
@@ -2285,7 +2285,7 @@ and multiple width modes.
 
 #tidy.show-module(
   tidy.parse-module(
-    read("/cap-able/0.1.1/src/note.typ"),
+    read("/cap-able/0.1.2/src/note.typ"),
     name: "note",
   ),
   show-module-name: false,
@@ -2299,7 +2299,7 @@ supporting bilingual captions, overlay labels, and subcaptions.
 
 #tidy.show-module(
   tidy.parse-module(
-    read("/cap-able/0.1.1/src/figure.typ"),
+    read("/cap-able/0.1.2/src/figure.typ"),
     name: "figure",
   ),
   show-module-name: false,
@@ -2502,10 +2502,51 @@ Example recipe for side-by-side small tables:
 
 Reference: `@tab:cmp` resolves to "@tab:cmp". Sub-tables (a)(b) get no automatic labels; just write "as shown in @tab:cmp(a)" inline.
 
+== Why does a smaller number appear below a larger one after using `placement`?
+
+When you float an earlier-declared table to the page bottom with `placement: bottom`, the page may read "Table 2 ... Table 1" top-to-bottom — the smaller number sitting below the larger.
+
+*This is not a bug — it is the inherent behavior of floats, and LaTeX behaves identically* (a `\begin{table}[b]` Table 1 likewise lands below a later in-flow Table 2). Floating *by definition* decouples *physical position* from *number order*:
+
+- The *number* always follows *source declaration order* — this is the academic standard, and in-text references like "see Table 1" rely on it.
+- The *physical position* follows the `placement` target.
+
+=== If you want "the higher table to have the smaller number"
+
+You can control this yourself, *with no cap-able setting changes*: since numbering follows declaration order, simply *declare the table you want numbered first* first.
+
+```typst
+// Desired: the upper table = Table 1, the bottom-floated table = Table 2
+#captab(caption: [the upper one])[ ... ]                       // declared 1st → Table 1
+#captab(caption: [floated to bottom], placement: bottom)[ ... ] // declared 2nd → Table 2
+```
+
+Declare the physically-higher table first → it gets the smaller number; declare the one to be floated later and add `placement: bottom`. For same-page floats this gives 100% control.
+
+#block(
+  fill: rgb("#fff7ed"),
+  stroke: 0.5pt + rgb("#f97316"),
+  radius: 4pt,
+  inset: 8pt,
+)[
+  *⚠️ Do not manually manipulate the counter.* Do not try to force numbers via `counter(figure.where(kind: table)).update(...)` or similar — cap-able registers numbers through an internal hidden-figure mechanism (a +1 / −1 / step sequence); manual counter edits fight that machinery and will *desync numbering or cross-references*. Reordering your `captab` declarations is the only correct fix.
+]
+
 // ============================================================
 // Chapter 11: Changelog
 // ============================================================
 = Changelog
+
+== Version 0.1.2
+
+*Fixed*:
+
+- The caption could be separated from its table/figure across a page break (issue #16). The `breakable: true` outer block allowed a page break to fall between the caption and the body, orphaning the caption at the bottom of one page while the body started on the next. The "leading" block (the caption for `caption-position: top`, the body for `bottom`) is now wrapped in `block(sticky: true)`, so it moves to the next page together with the content it leads — never separated. The body still breaks internally as normal.
+- `placement: top` / `bottom` / `auto` no longer breaks the `figure-above` / `figure-below` spacing (and captab's `caption-above` / `table-below`) (issue #14). A floated element is wrapped in `place(float: true)`, on which outer `v()` / block margins have no effect; the float-to-body spacing now goes through `place`'s `clearance` parameter. A float only has one meaningful gap (toward the body): `top` uses the below spacing, `bottom` uses the above spacing, `auto` falls back to below.
+
+*Added / Deprecated*:
+
+- `continued-caption` renamed to `show-continued-caption` (consistent with `show-subcaption` / `show-subcaption-label`). The old name `continued-caption` *still works* in 0.1.x and will be *removed in 0.2.0*. The preferred name wins if both are passed. Affects `captab` / `captab-style` / `bicap`.
 
 == Version 0.1.1
 

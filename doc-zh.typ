@@ -16,7 +16,7 @@
 
 #import "@preview/tidy:0.4.3"
 #import "@preview/mantys:1.0.2": *
-#import "cap-able/0.1.1/lib.typ": *
+#import "cap-able/0.1.2/lib.typ": *
 
 // ============================================================
 // 文档元数据
@@ -24,7 +24,7 @@
 
 #show: mantys(
   name: "cap-able",
-  version: "0.1.1",
+  version: "0.1.2",
   authors: (
     "Schrödinger Blume",
   ),
@@ -111,7 +111,7 @@
 发布到 Typst Universe 后，可直接导入：
 
 ```typst
-#import "@preview/cap-able:0.1.1": *
+#import "@preview/cap-able:0.1.2": *
 ```
 
 == 手动安装
@@ -122,7 +122,7 @@
 + 使用相对路径导入
 
 ```typst
-#import "cap-able/0.1.1/lib.typ": *
+#import "cap-able/0.1.2/lib.typ": *
 ```
 
 // ============================================================
@@ -1598,7 +1598,7 @@ caption-text: (
   [`extra-rule`], [`0.5pt`], [`hlines` / `vlines` 中未单独指定 `stroke` 时的默认 stroke；接受单值或 dict `(h: ..., v: ...)` 拆分横/竖线],
   [`breakable`], [`true`], [表格能否跨页（外层 block 的 `breakable`）],
   [`repeat-header`], [`true`], [跨页时是否重复 markdown 表头行（`true` / `false` / 正整数 `n`）],
-  [`continued-caption`], [`false`], [跨页时是否在每个续页顶部重复题注（"续表 X.Y"格式，复用 refer-to 渲染）],
+  [`show-continued-caption`], [`false`], [跨页时是否在每个续页顶部重复题注（"续表 X.Y"格式，复用 refer-to 渲染）。旧名 `continued-caption` 仍兼容，将于 0.2.0 移除],
   [`caption-position`], [`top`], [#raw("#bicap()[body]") 模式下题注相对 body 的位置（`top` / `bottom`）],
   [`caption-align`], [`"center"`], [题注水平对齐：`"center"` / `"left"` / `"right"`（表局部）/ `"text-left"` / `"text-right"`（正文宽）；或 dict `(main, continued)` 拆分主与续],
   [`placement`], [`none`], [浮动定位：`none` / `top` / `bottom` / `auto`（启用浮动时强制 `breakable: false`）],
@@ -1744,7 +1744,7 @@ caption-text: (
   [`extra-rule`], [`auto` / `stroke` / `dict`], [`hlines` / `vlines` 缺省 stroke 时的默认值；接单值或 dict `(h: ..., v: ...)` 分别指定横/竖线（缺失键回退包默认 `0.5pt`）；per-line `stroke` 仍可单独覆盖],
   [`breakable`], [`auto` / `bool`], [是否允许跨页（`auto` 取全局 `breakable`，默认 `true`）],
   [`repeat-header`], [`auto` / `bool` / `int`], [跨页时是否重复表头行（`auto` 取全局 `repeat-header`）],
-  [`continued-caption`], [`auto` / `bool`], [跨页时是否在每个续页顶部重复题注（"续表 X.Y"格式）],
+  [`show-continued-caption`], [`auto` / `bool`], [跨页时是否在每个续页顶部重复题注（"续表 X.Y"格式）。旧名 `continued-caption` 仍兼容，0.2.0 移除；两者都传时新名优先],
   [`hlines`], [`array` of `int` / `dictionary`], [额外横线数组；元素可为 `int`（简写，等价 `(row: N)`）或完整 dict],
   [`vlines`], [`array` of `int` / `dictionary`], [额外竖线数组；元素可为 `int`（简写，等价 `(col: N)`）或完整 dict],
   [`label`], [`none` / `label`], [本表标签],
@@ -1960,7 +1960,7 @@ caption-text: (
   [`caption-align`], [`auto` / `str` / `dict`], [题注水平对齐：`"center"` / `"left"` / `"right"` / `"text-left"` / `"text-right"`，或 dict `(main, continued)` 拆主与续；`auto` 取全局],
   [`placement`], [`none` / `top` / `bottom` / `auto`], [浮动定位（`auto` = Typst 按距离选 top/bottom）；启用浮动时强制 `breakable: false`],
   [`breakable`], [`bool`], [外层 block 是否允许跨页（默认 `true`，让 body 内部本身可跨页的内容自然顺延）],
-  [`continued-caption`], [`bool`], [跨页时是否在 body 内每张原生 `#table()` 顶部重复题注（默认 `false`；仅 `kind == "table"` 生效）],
+  [`show-continued-caption`], [`auto` / `bool`], [跨页时是否在 body 内每张原生 `#table()` 顶部重复题注（默认 `false`；仅 `kind == "table"` 生效）。旧名 `continued-caption` 仍兼容，0.2.0 移除],
   [`repeat-header`], [`auto` / `bool` / `int`], [覆盖 body 内 `#table()` markdown 表头的 `repeat` 设定（`auto` 不干涉，`true/false/int` 强制覆盖；仅 `kind == "table"` 生效）],
   [`body`], [`none` / `content`], [可选的 body 内容；也可用尾随内容块 `#bicap()[...]` 传入],
   table.hline(stroke: 1.5pt),
@@ -2285,7 +2285,7 @@ caption-text: (
 
 #tidy.show-module(
   tidy.parse-module(
-    read("/cap-able/0.1.1/src/config.typ"),
+    read("/cap-able/0.1.2/src/config.typ"),
     name: "config",
   ),
   show-module-name: false,
@@ -2299,7 +2299,7 @@ caption-text: (
 
 #tidy.show-module(
   tidy.parse-module(
-    read("/cap-able/0.1.1/src/bicap.typ"),
+    read("/cap-able/0.1.2/src/bicap.typ"),
     name: "bicap",
   ),
   show-module-name: false,
@@ -2313,7 +2313,7 @@ caption-text: (
 
 #tidy.show-module(
   tidy.parse-module(
-    read("/cap-able/0.1.1/src/table.typ"),
+    read("/cap-able/0.1.2/src/table.typ"),
     name: "table",
   ),
   show-module-name: false,
@@ -2327,7 +2327,7 @@ caption-text: (
 
 #tidy.show-module(
   tidy.parse-module(
-    read("/cap-able/0.1.1/src/note.typ"),
+    read("/cap-able/0.1.2/src/note.typ"),
     name: "note",
   ),
   show-module-name: false,
@@ -2341,7 +2341,7 @@ caption-text: (
 
 #tidy.show-module(
   tidy.parse-module(
-    read("/cap-able/0.1.1/src/figure.typ"),
+    read("/cap-able/0.1.2/src/figure.typ"),
     name: "figure",
   ),
   show-module-name: false,
@@ -2545,10 +2545,51 @@ cap-able 目前*不提供* `capsubtab`。原因：
 
 引用：`@tab:cmp` 解析为 "@tab:cmp"。子表 (a)(b) 没有自动 label，正文里直接写"如@tab:cmp(a) 所示"即可。
 
+== 用了 `placement` 后，为什么小编号出现在大编号下方？
+
+把较前声明的表用 `placement: bottom` 浮到页底时，页面上从上往下看可能是"Table 2 ... Table 1"——小编号在下。
+
+*这不是 bug，是浮动的固有行为，LaTeX 完全一致*（`\begin{table}[b]` 的 Table 1 同样落在后面 in-flow 的 Table 2 下方）。浮动的定义就是把*物理位置*和*编号顺序*解耦：
+
+- *编号* 始终按*源码声明顺序*——这是学术规范，正文里"见表 1"依赖它。
+- *物理位置* 按 `placement` 落点走。
+
+=== 如果希望"靠上的表编号更小"
+
+自己控制即可，*不用改任何 cap-able 设置*：编号既然按声明顺序走，那就*把想要小编号的表先声明*。
+
+```typst
+// 想要的效果：上方的表 = 表 1，页底浮动的表 = 表 2
+#captab(caption: [上方这张])[ ... ]                      // 声明①→ 表 1
+#captab(caption: [浮到页底这张], placement: bottom)[ ... ]  // 声明②→ 表 2
+```
+
+物理上靠上的先声明 → 拿小编号；要浮到页底的那张声明在后、加 `placement: bottom`。同页浮动场景这样 100% 可控。
+
+#block(
+  fill: rgb("#fff7ed"),
+  stroke: 0.5pt + rgb("#f97316"),
+  radius: 4pt,
+  inset: 8pt,
+)[
+  *⚠️ 不要手动干预编号*。不要试图用 `counter(figure.where(kind: table)).update(...)` 之类强行改编号——cap-able 通过内部隐藏 figure 机制注册编号（一套 +1 / −1 / step 流程），手动改计数器会与这套机制冲突，导致*编号或交叉引用错乱*。调整 `captab` 的声明顺序是唯一正确的解法。
+]
+
 // ============================================================
 // 第十一章：变更日志
 // ============================================================
 = 变更日志
+
+== 版本 0.1.2
+
+*修复*：
+
+- 修复跨页时题注可能与表/图分离的问题（issue #16）。`breakable: true` 的外层 block 允许分页落在题注与表体之间，导致题注被孤立在上一页底部、表体跑到下一页。现在用 `block(sticky: true)` 把"排在前面的那一块"（`caption-position: top` 时是题注、`bottom` 时是表体）粘住其后续内容——分页时一起移动，绝不分离。表体仍可正常内部跨页。
+- 修复 `placement: top` / `bottom` / `auto` 时，`figure-above` / `figure-below`（以及 captab 的 `caption-above` / `table-below`）间距失效的问题（issue #14）。浮动元素由 `place(float: true)` 包裹，外层 `v()` / block 间距对它无效；改用 `place` 的 `clearance` 参数承载浮动元素与正文之间的间距。浮动只有"朝向正文一侧"的间距有意义：`top` 取 below 间距、`bottom` 取 above 间距、`auto` 取 below 兜底。
+
+*新增功能 / 弃用*：
+
+- `continued-caption` 重命名为 `show-continued-caption`（与 `show-subcaption` / `show-subcaption-label` 命名统一）。旧名 `continued-caption` 在 0.1.x *仍兼容*，将于 *0.2.0 移除*。两者同时传时新名优先。涉及 `captab` / `captab-style` / `bicap`。
 
 == 版本 0.1.1
 

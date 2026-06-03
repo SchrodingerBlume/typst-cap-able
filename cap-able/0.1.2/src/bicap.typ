@@ -340,6 +340,29 @@
 
         let figure-kind = if kind == "table" { table } else { image }
 
+        // ───────────────────────────────────────────────────────────
+        // bug 2 修复：合成 anchor label 给 hidden figure，让正文 caption
+        // 在 figure 落地位置读 counter(heading)，与 Typst 给 figure 自己
+        // 解析 numbering 时同步——而不是在 caption 渲染位置直接 .get()。
+        // 后者在多 layout 迭代下可能漂移到 (0,)，导致正文渲染 "0.1"。
+        //
+        // bug 2 fix: synthesise an anchor label on the hidden figure so the
+        // main caption can read counter(heading).at(figure.location()) —
+        // matching how Typst resolves the figure's own numbering callback —
+        // instead of calling .get() at the caption render position. The
+        // .get() path could drift to (0,) across layout iterations and
+        // render the body caption as "0.1".
+        // 用户传了 label 就直接用，否则合成 __bicap_anchor_<id>。
+        // Use user's label if any; otherwise synthesise __bicap_anchor_<id>.
+        let anchor-counter-key = "__bicap-anchor-id"
+        let anchor-synth-id = counter(anchor-counter-key).get().first()
+        let has-user-label = label != none
+        let anchor-label = if has-user-label {
+          label
+        } else {
+          std.label("__bicap_anchor_" + str(anchor-synth-id))
+        }
+
         // 步骤1：插入隐藏的 figure，注册编号并设置目录条目
         // Step 1: Insert hidden figure, register number and set outline entry
         place(hide[
@@ -397,8 +420,14 @@
               }
             },
             [],
-          )#if label != none { label }   // 绑定交叉引用标签 / Bind cross-reference label
+          )#anchor-label    // 用户 label 或合成 anchor 二选一 / user label or synthesised anchor
         ])
+
+        // 合成 label 时需要把 anchor counter 推进 1，让下一张表拿到新 id。
+        // Bump the anchor counter if we synthesised, so the next captab gets a fresh id.
+        if not has-user-label {
+          counter(anchor-counter-key).step()
+        }
 
         // 步骤2：将计数器减 1，抵消上面隐藏 figure 造成的计数增加
         // Step 2: Decrement counter by 1 to cancel the increment from the hidden figure
@@ -410,7 +439,19 @@
         let num = counter(figure.where(kind: figure-kind)).get().first() + 1
 
         let table-num = if use-ch {
-          let h = counter(heading).get()
+          // 通过 anchor label 拿到 figure 实际 location，counter(heading).at(loc)
+          // 与 figure 自己的 numbering 闭包同步——避免 caption 渲染位置 .get()
+          // 漂移到 (0,) 导致正文 "0.1"（bug 2）。query 失败兜底走 .get()。
+          // Query the anchor label for the figure's location and read
+          // counter(heading).at(loc) — matching how the figure's own numbering
+          // callback resolves the chapter prefix, avoiding the .get()-at-caption
+          // drift that could render "0.1" in the body caption (bug 2).
+          let figs = query(anchor-label)
+          let h = if figs.len() > 0 {
+            counter(heading).at(figs.first().location())
+          } else {
+            counter(heading).get()
+          }
           let chapter-nums = if type(config.numbering-format) == str {
             h.slice(0, calc.min(config.chapter-level, h.len()))
           } else {

@@ -2584,6 +2584,7 @@ cap-able 目前*不提供* `capsubtab`。原因：
 
 *修复*：
 
+- 修复 `use-chapter: true` 时，正文标题章节前缀偶发渲染为 `0`（如本应"表 3.1"渲染成"表 0.1"），而 LoT / `@ref` 仍是正确编号的问题。根因：正文 caption 在自己的 `context { ... }` 渲染位置调 `counter(heading).get()`，多 layout 迭代下可能漂到 `(0,)`；而 LoT / `@ref` 走 figure 自己的 `numbering:` 闭包，由 Typst 在 figure 落地点求值，稳定。修复后正文同样*通过 hidden figure 的 label 查询其 location*，再 `counter(heading).at(loc)` 读取，与 LoT 路径同步。用户没传 `label` 时自动合成 `__bicap_anchor_<n>` 作为锚点。
 - 修复跨页时题注可能与表/图分离的问题（issue #16）。`breakable: true` 的外层 block 允许分页落在题注与表体之间，导致题注被孤立在上一页底部、表体跑到下一页。现在用 `block(sticky: true)` 把"排在前面的那一块"（`caption-position: top` 时是题注、`bottom` 时是表体）粘住其后续内容——分页时一起移动，绝不分离。表体仍可正常内部跨页。
 - 修复 `placement: top` / `bottom` / `auto` 时，`figure-above` / `figure-below`（以及 captab 的 `caption-above` / `table-below`）间距失效的问题（issue #14）。浮动元素由 `place(float: true)` 包裹，外层 `v()` / block 间距对它无效；改用 `place` 的 `clearance` 参数承载浮动元素与正文之间的间距。浮动只有"朝向正文一侧"的间距有意义：`top` 取 below 间距、`bottom` 取 above 间距、`auto` 取 below 兜底。
 
